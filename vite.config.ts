@@ -5,7 +5,9 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   define: {
-    global: 'window',
+    global: {
+      setImmediate: "((fn, ...args) => setTimeout(fn, 0, ...args))"
+    }
   },
   server: {
     host: true,
