@@ -1,7 +1,7 @@
 import { ManifestEditor } from "manifest-editor"
 import "manifest-editor/dist/index.css"
 import './App.css'
-import { useEffect, useState, useCallback } from "react" //useCallback
+import { useEffect, useCallback, useState } from "react" //useCallback
 import { useExistingVault } from "react-iiif-vault"
 import { useSaveVault } from "@manifest-editor/shell"
 
@@ -9,45 +9,32 @@ function App() {
   const [data, setData] = useState()
   const manifestId = "https://www.canadiana.ca/iiif/oocihm.8_06911_32/manifest" 
   const vault = useExistingVault()
- 
-  const saveVault = useCallback(() => {
-    // Save logic here.
-    console.log("Reading from vault")
-    const vaultData = vault.getObject(manifestId)
-    if(typeof vaultData !== "undefined") {
-      setData(vaultData)
-      // Save the data to localstorage
-      const dataString = JSON.stringify(vaultData)
-      console.log("ds: ", dataString)
-      localStorage.setItem(manifestId, dataString)
-      //const dataString2 = JSON.stringify(vault.getState().iiif.entities.Manifest)
-      //console.log("ds2: ", dataString2)
-    } else {
-      console.log("Vault data undef")
-    }
 
-    
+  const saveVault = useCallback(() => {
+    const vaultData = vault.toPresentation3({ id: manifestId, type: 'Manifest' })
+    if(typeof vaultData !== "undefined" && vaultData !== "__$UNSET$__") {
+      localStorage.setItem(manifestId, JSON.stringify(vaultData))
+    } else {
+      console.log("Vault data undefined, nothing to save.")
+    }    
   }, [])
  
   useSaveVault(
-    // The instance of the vault.
     vault,
-    // Callback to save the vault.
     saveVault,
-    // How often it should save the vault (debounce)
     5000
   )
 
   useEffect(() => {
-    const vaultDataText = localStorage.getItem(manifestId)
-    if(typeof vaultDataText === "string" && vaultDataText !== "null") {
-      console.log("Localstore:", vaultDataText )
-      vault.loadManifestSync(manifestId, JSON.parse(vaultDataText))
+    const localDataText = localStorage.getItem(manifestId)
+    if(typeof localDataText === "string" && localDataText !== "__$UNSET$__") {
+      const localData = JSON.parse(localDataText)
+      setData(localData)
     } else {
       fetch(manifestId)
         .then((res) => res.json())
         .then((data) => {
-          vault.loadManifestSync(manifestId, data)
+          setData(data)
         })
     }
   }, [])
