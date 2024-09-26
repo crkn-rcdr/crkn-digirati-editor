@@ -7,7 +7,7 @@
   "author": "Brittny Lspierre",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build --base='./'",
+    "build": "tsc -b && vite build --base=./",
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "electron-forge start",
