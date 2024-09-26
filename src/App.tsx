@@ -1,15 +1,40 @@
 import { ManifestEditor } from "manifest-editor"
 import "manifest-editor/dist/index.css"
 import './App.css'
-import { useEffect, useCallback, useState } from "react" //useCallback
-import { useExistingVault } from "react-iiif-vault"
-import { useSaveVault } from "@manifest-editor/shell"
+import { useEffect, useState } from "react" //useCallback
+//import { useExistingVault } from "react-iiif-vault"
+//import { useSaveVault } from "@manifest-editor/shell"
+
+/*
+const builder = new IIIFBuilder(vault);
+builder.editManifest(manifest.id, (mani: any) => {
+  mani.createCanvas(newCanvasID, (can: any) => {
+    can.entity.id = newCanvasID;
+    can.height = inputed?.height;
+    can.width = inputed?.width;
+    can.createAnnotation(`${newCanvasID}/painting`, {
+      id: `${newCanvasID}/painting`,
+      type: "Annotation",
+      motivation: "painting",
+      body: {
+        id: inputValue,
+        type: "Image",
+        format: inputed?.format,
+        height: inputed?.height,
+        width: inputed?.width,
+      },
+    });
+  });
+});
+*/
 
 function App() {
   const [data, setData] = useState()
-  const manifestId = "https://www.canadiana.ca/iiif/oocihm.8_06911_32/manifest" 
-  const vault = useExistingVault()
+  //const vault = useExistingVault()
+  let testProject = "/project/step 1"
+  const manifestId = testProject
 
+  /*
   const saveVault = useCallback(() => {
     const vaultData = vault.toPresentation3({ id: manifestId, type: 'Manifest' })
     if(typeof vaultData !== "undefined" && vaultData !== "__$UNSET$__") {
@@ -23,11 +48,12 @@ function App() {
     vault,
     saveVault,
     5000
-  )
+  )*/
 
   useEffect(() => {
-    const localDataText = localStorage.getItem(manifestId)
+    /*const localDataText = localStorage.getItem(manifestId)
     if(typeof localDataText === "string" && localDataText !== "__$UNSET$__") {
+      console.log('Loading from local store')
       const localData = JSON.parse(localDataText)
       setData(localData)
     } else {
@@ -36,7 +62,12 @@ function App() {
         .then((data) => {
           setData(data)
         })
-    }
+    }*/
+    window.electronAPI.createManifest(testProject)
+      .then ( res => {
+        console.log("data", res)
+        setData(res)
+      })
   }, [])
  
   if (!data) {

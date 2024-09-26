@@ -1,9 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import dts from 'vite-plugin-dts'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), dts({
+    include: ['interface.d.ts'],
+  })],
   define: {
     global: {
       setImmediate: "((fn, ...args) => setTimeout(fn, 0, ...args))"
