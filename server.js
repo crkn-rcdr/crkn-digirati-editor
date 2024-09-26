@@ -3,6 +3,7 @@ import fastifyStatic from '@fastify/static'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+const port = process.env.PORT || 8000
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
@@ -19,7 +20,7 @@ fastify.get('/', function (req, reply) {
 })
 
 // Run the server!
-fastify.listen({ port: 8000 , host: '0.0.0.0' }, function (err, address) {
+fastify.listen({ port , host: '0.0.0.0' }, function (err, address) {
     if (err) {
       fastify.log.error(err)
       process.exit(1)
