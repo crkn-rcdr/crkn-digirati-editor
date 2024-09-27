@@ -1,6 +1,6 @@
 import { useManifest } from "react-iiif-vault"
  
-export function OpenManifest() {
+export function WriteManifestToFolder() {
   const manifest = useManifest()
  
   if (!manifest) return null
@@ -8,7 +8,7 @@ export function OpenManifest() {
   // LocaleString will choose a language based on the user's browser settings by default.
   return (
     <h1>
-      OpenManifest
+      PublishManifest
     </h1>
   )
 }

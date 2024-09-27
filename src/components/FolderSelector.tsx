@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect } from "react"
 import { useExistingVault } from "react-iiif-vault"
  
 export function FolderSelector() {
