@@ -8,7 +8,7 @@ interface IElectronAPI {
   node: () => string,
   chrome: () => string,
   electron: () => string,
-  createManifest: (projectName : string) => Promise<any>,
+  createManifest: () => Promise<any>,
 }
 declare global {
   interface Window {
