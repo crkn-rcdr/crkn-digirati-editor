@@ -37,6 +37,296 @@ const createWindow = () => {
       "@context": "http://iiif.io/api/presentation/3/context.json",
       "type" : "Manifest",
       "id" : manifestId,
+      "label" : {
+        "en": [
+          "New Digitization Project Title"
+        ]
+      },
+      "summary": {
+        "en": [
+          "Add a simple description"
+        ]
+      },
+      "metadata" : [
+        {
+          "label": {
+            "en": [
+              "Accessibility Summary"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add an accessibility summary (Significant accessibility barriers exist for accessing this content in a non-visual manner.|Structural navigation and mark up exists to enable accessibility and compatibility with assistive technology.)"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Accessibility Features"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add accessbility features (Annotations, Long Descriptions, Table of Contents, Structural Navigation...)"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Destination"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add destination (Preservation only | Access only | Both Preservation and Access)"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Portal"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add portal (Canadiana | Heritage | Global Affairs Canada | Nataional Resources Canada | Library of Parlaiment)"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Depositor"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add depositor (University of Alberta, Rutherford Library | Shortgrass Public Library System | Canadian Association of Research Libraries | Musicworks Society of Ontario Inc. | Numeris | Mississauga Library System | Canadiana.org | Department of Foreign Affairs Trade and Development | Canadian Hazards Information Service | Library of Parliament | South Mountain | McGill University Archives | University of Regina Archives | Simon Fraser University)"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Slug"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add a slug"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "InMagic Identifier"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add InMagic identifier"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "CIHM Identifier"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add CIHM identifier"
+            ]
+          }
+        },
+        // TODO: Decide if need
+        {
+          "label": {
+            "en": [
+              "Title"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add title"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Alternate Title"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add alternaitve title"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Volume/Issue"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add "
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Issue Date"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add issue date"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Language"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add language"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Place of Publication"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add place of publication"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Publisher"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add publisher"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Publication Date"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add publication date"
+            ]
+          }
+        },
+        // Don't rip this
+        {
+          "label": {
+            "en": [
+              "Local Note"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add local notes"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Number of Pages "
+            ]
+          },
+          "value": {
+            "en": [
+              "Add number of pages"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Number of Images"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add number of images"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "LIBR Source Code"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add LIBR source code"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Dots Per Inch"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add dots per inch"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Source"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add source"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Scan Date"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add scan date"
+            ]
+          }
+        }
+      ],
       "items": []
     }
     let i = 0;
@@ -49,11 +339,11 @@ const createWindow = () => {
       canvas.type = "Canvas"
       canvas.width = dimensions.width
       canvas.height = dimensions.height
-      /*canvas.label =  {
+      canvas.label =  {
         "en": [
           `Image ${i+1}`
         ]
-      }*/
+      }
       annotPage.id = `annotPage-${filePath}`
       annotPage.type = "AnnotationPage"
       const ext = path.extname(filePath)

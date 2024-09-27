@@ -7,9 +7,8 @@ export function FolderSelector() {
     window.electronAPI.createManifest()
       .then ( res => {
         try {
-          console.log("res", JSON.stringify(res))
           vault.loadManifestObject(res["id"], res).then(manifest => {
-            console.log("m", manifest)
+            console.log("Loaded manifest: ", manifest)
           })
         } catch (e) {
           console.log("error loading to vault.")

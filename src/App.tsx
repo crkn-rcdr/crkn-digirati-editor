@@ -13,9 +13,8 @@ function App() {
   const manifestId = "Digitization Project"
   const vault = new Vault()
   const [data, setData] = useState()
-  vault.subscribe((e) => {
+  vault.subscribe(() => {
     const manifest = vault.getObject(manifestId)
-    console.log("e", e, "mmmm", manifest)
     setData(manifest)
   }, true)
     return (
