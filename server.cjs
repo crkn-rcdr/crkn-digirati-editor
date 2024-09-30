@@ -27,9 +27,9 @@ const createWindow = () => {
 
   ipcMain.handle("createManifest", async (event) => {
     const handler = await dialog.showOpenDialog({properties: ['openDirectory']})
+    if(!handler.filePaths[0]) return
     const projectPath = handler.filePaths[0].replace(/\\/g, '/');
     console.log(projectPath)
-
     console.log(`createManifest from frontend: ${projectPath}`)
     const files = getFolderContentsArray(projectPath) //pathToWIP + 
     console.log("files", files)

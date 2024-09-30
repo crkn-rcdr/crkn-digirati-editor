@@ -1,14 +1,34 @@
-import { useManifest } from "react-iiif-vault"
- 
+//import { useEffect } from "react"
+import { useExistingVault } from "react-iiif-vault"
+import { Button } from '@chakra-ui/react'
+
 export function SaveManifestToFileSystem() {
-  const manifest = useManifest()
- 
-  if (!manifest) return null
- 
-  // LocaleString will choose a language based on the user's browser settings by default.
+  const vault = useExistingVault()
+
+  let onSelectPress = () => {
+    console.log(vault)
+    /*window.electronAPI.createManifest()
+      .then ( res => {
+        try {
+          vault.loadManifestObject(res["id"], res).then(manifest => {
+            console.log("Loaded manifest: ", manifest)
+          })
+        } catch (e) {
+          console.log("error loading to vault.")
+        }
+        
+    })*/
+  }
+
+
   return (
     <h1>
-      SaveManifest
+      <Button
+        onClick={onSelectPress}
+        title="Select a folder"
+        colorScheme="pink">
+          Select folder
+      </Button>
     </h1>
   )
 }

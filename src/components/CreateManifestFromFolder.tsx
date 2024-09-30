@@ -2,7 +2,7 @@
 import { useExistingVault } from "react-iiif-vault"
 import { Button } from '@chakra-ui/react'
 
-export function OpenManifestFromURL() {
+export function CreateManifestFromFolder() {
   const vault = useExistingVault()
   /*useEffect(() => {
     window.electronAPI.createManifest()
@@ -18,9 +18,8 @@ export function OpenManifestFromURL() {
     })
   })*/
 
-  let onOpen = () => {
-    console.log(vault)
-    /*window.electronAPI.createManifest()
+  let onSelectPress = () => {
+    window.electronAPI.createManifest()
       .then ( res => {
         try {
           vault.loadManifestObject(res["id"], res).then(manifest => {
@@ -30,17 +29,17 @@ export function OpenManifestFromURL() {
           console.log("error loading to vault.")
         }
         
-    })*/
+    })
   }
 
 
   return (
     <h1>
       <Button
-        onClick={onOpen}
-        title="Open manifest from url"
+        onClick={onSelectPress}
+        title="Select a folder"
         colorScheme="pink">
-          Open
+          Select folder
       </Button>
     </h1>
   )

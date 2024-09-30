@@ -2,11 +2,14 @@
 import "manifest-editor/dist/index.css"
 import './App.css'
 import { ManifestEditor } from "manifest-editor"
-import { FolderSelector } from "./components/FolderSelector"
 import { VaultProvider } from "react-iiif-vault"
 import { Vault } from "@iiif/helpers/vault"
 import { useState } from "react"
-//import { TopBar } from "./components/TopBar"
+import { ChakraProvider } from '@chakra-ui/react'
+import { OpenManifestFromURL } from "./components/OpenManifestFromURL"
+import { CreateManifestFromFolder } from "./components/CreateManifestFromFolder"
+import { SaveManifestToFileSystem } from "./components/SaveManifestToFileSystem"
+import { PublishManifestToAPI } from "./components/PublishManifestToAPI"
 
 function App() {
   const manifestId = "Digitization Project"
@@ -19,14 +22,25 @@ function App() {
     return (
       <VaultProvider vault={vault}>
          {  data ? 
-              <div style={{ width: "100vw", height: "100vh", display: "flex" }}>
+              <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column"}}>
+                    <ChakraProvider>
+                      <div style={{ width: "100vw", display: "flex", flexDirection: "row"}}>
+                        <OpenManifestFromURL></OpenManifestFromURL>
+                        <CreateManifestFromFolder></CreateManifestFromFolder>
+                        <SaveManifestToFileSystem></SaveManifestToFileSystem>
+                        <PublishManifestToAPI></PublishManifestToAPI>
+                      </div>
+                    </ChakraProvider>
                   <ManifestEditor resource={{ id: manifestId, type: "Manifest" }} data={data as any}/>
               </div>
             :
+            <ChakraProvider>
               <div>
-                <h1>Pick a project folder or enter a manifest URL to get started.</h1>
-                <FolderSelector/>
+                <h1>Get started</h1>
+                <OpenManifestFromURL></OpenManifestFromURL>
+                <CreateManifestFromFolder></CreateManifestFromFolder>
               </div>
+            </ChakraProvider>
           }
       </VaultProvider>  
     )
