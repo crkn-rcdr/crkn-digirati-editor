@@ -16,6 +16,7 @@ import {
   MenuButton,
   MenuList
 } from '@chakra-ui/react'
+import { UpdateManifestFromFolder } from "./components/UpdateManifestFromFolder"
 
 
 function App() {
@@ -43,7 +44,7 @@ function App() {
                         Open
                       </MenuButton>
                       <MenuList>
-                        <CreateManifestFromFolder/>
+                        <UpdateManifestFromFolder/>
                         <OpenManifestFromURL/>
                       </MenuList>
                     </Menu>

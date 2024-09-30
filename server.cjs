@@ -6,6 +6,7 @@ const iiifBuilder = require('@iiif/builder')
 const sizeOf = require("image-size")
 const builder = new iiifBuilder.IIIFBuilder()
 const iiifParser = require( '@iiif/parser' )
+const fs = require('fs')
 //const { fork } = require('child_process')
 //const ps = fork(`${__dirname}/fileServer.cjs`)
 //console.log("Fileserver running in the bg: ", ps)
@@ -22,12 +23,20 @@ const createWindow = () => {
       preload: path.join(__dirname, 'preload.js')
     }
   })
+  
+  ipcMain.handle("saveManifestJSON", async (event, data) => {
+    const pathToSaveTo = path.join(path.dirname(path.dirname(data['items'][0]['id'].replace("canvas-", ''))),'.manifest.json')
+    console.log(pathToSaveTo)
+    try { 
+      fs.writeFileSync(pathToSaveTo, JSON.stringify(data), 'utf-8') 
+    }
+    catch(e) { alert('Failed to save the manifest !'); }
+  })
 
   ipcMain.handle("createManifest", async (event) => {
     const handler = await dialog.showOpenDialog({properties: ['openDirectory']})
     if(!handler.filePaths[0]) return
-    const projectPath = handler.filePaths[0].replace(/\\/g, '/');
-    console.log(projectPath)
+    const projectPath = handler.filePaths[0].replace(/\\/g, '/')
     console.log(`createManifest from frontend: ${projectPath}`)
     const files = getFolderContentsArray(projectPath) //pathToWIP + 
     console.log("files", files)
@@ -143,8 +152,8 @@ const createWindow = () => {
             ]
           }
         },
-        // TODO: Decide if need
-        {
+        // LABEL
+        /* {
           "label": {
             "en": [
               "Title"
@@ -155,7 +164,7 @@ const createWindow = () => {
               "Add title"
             ]
           }
-        },
+        }, */
         {
           "label": {
             "en": [
@@ -328,6 +337,14 @@ const createWindow = () => {
       ],
       "items": []
     }
+    // Check if save file exists
+    const manifestCache = path.join(path.dirname(projectPath),'.manifest.json')
+    console.log("Checking for: ", manifestCache)
+    if(fs.existsSync(manifestCache)) {
+      console.log("Exists - restoring state.")
+      manifest = JSON.parse(fs.readFileSync(manifestCache, 'utf-8'))
+    }
+    manifest['items'] = []
     let i = 0;
     for (let filePath of files ) {
       let canvas = { }
