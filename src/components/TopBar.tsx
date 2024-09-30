@@ -1,6 +1,6 @@
 import { useManifest } from "react-iiif-vault"
+import { OpenManifestFromURL } from "./OpenManifestFromURL"
 import { FolderSelector } from "./FolderSelector"
-import { OpenManifest } from "./OpenManifest"
 import { SaveManifestToFileSystem } from "./SaveManifestToFileSystem"
 import { PublishManifestToAPI } from "./PublishManifestToAPI"
  
@@ -13,8 +13,9 @@ export function TopBar() {
   return (
     <h1>
       Boo
+      <OpenManifestFromURL/>
       <FolderSelector/>
-      <OpenManifest/>
+      <SaveManifestToFileSystem/>
       <SaveManifestToFileSystem/>
       <PublishManifestToAPI/>
     </h1>

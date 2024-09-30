@@ -56,7 +56,7 @@ const createWindow = () => {
           },
           "value": {
             "en": [
-              "Add an accessibility summary (Significant accessibility barriers exist for accessing this content in a non-visual manner.|Structural navigation and mark up exists to enable accessibility and compatibility with assistive technology.)"
+              "Add an accessibility summary (Access Mode: Visual. Significant accessibility barriers exist for accessing this content in a non-visual manner.|Access Mode: Visual. Significant accessibility barriers exist for accessing this content in a non-visual manner. Structural navigation and mark up exists to improve use of this content with assistive technology.)"
             ]
           }
         },

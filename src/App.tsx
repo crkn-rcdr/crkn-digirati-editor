@@ -3,11 +3,10 @@ import "manifest-editor/dist/index.css"
 import './App.css'
 import { ManifestEditor } from "manifest-editor"
 import { FolderSelector } from "./components/FolderSelector"
-import { OpenManifest } from "./components/OpenManifest"
 import { VaultProvider } from "react-iiif-vault"
 import { Vault } from "@iiif/helpers/vault"
-import { TopBar } from "./components/TopBar"
 import { useState } from "react"
+//import { TopBar } from "./components/TopBar"
 
 function App() {
   const manifestId = "Digitization Project"
@@ -21,14 +20,12 @@ function App() {
       <VaultProvider vault={vault}>
          {  data ? 
               <div style={{ width: "100vw", height: "100vh", display: "flex" }}>
-                <TopBar/>
-                <ManifestEditor resource={{ id: manifestId, type: "Manifest" }} data={data as any}/>
+                  <ManifestEditor resource={{ id: manifestId, type: "Manifest" }} data={data as any}/>
               </div>
             :
               <div>
                 <h1>Pick a project folder or enter a manifest URL to get started.</h1>
                 <FolderSelector/>
-                <OpenManifest/>
               </div>
           }
       </VaultProvider>  
