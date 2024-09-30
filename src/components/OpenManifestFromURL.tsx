@@ -11,6 +11,7 @@ export function OpenManifestFromURL() {
 
   let onOpen = () => {
     console.log(vault)
+    //save images to new folder
     /*window.electronAPI.createManifest()
       .then ( res => {
         try {

@@ -15,31 +15,48 @@ const { download } = import('electron-dl')
 
 testProject = /project/step 1
 */
-const createWindow = () => {
-  const win = new BrowserWindow({
-    width: 1200,
-    height: 900,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
-    }
-  })
-  
-  ipcMain.handle("saveManifestJSON", async (event, data) => {
-    const pathToSaveTo = path.join(path.dirname(path.dirname(data['items'][0]['id'].replace("canvas-", ''))),'.manifest.json')
-    console.log(pathToSaveTo)
-    try { 
-      fs.writeFileSync(pathToSaveTo, JSON.stringify(data), 'utf-8') 
-    }
-    catch(e) { alert('Failed to save the manifest !'); }
-  })
 
-  ipcMain.handle("createManifest", async (event) => {
-    const handler = await dialog.showOpenDialog({properties: ['openDirectory']})
-    if(!handler.filePaths[0]) return
-    const projectPath = handler.filePaths[0].replace(/\\/g, '/')
-    console.log(`createManifest from frontend: ${projectPath}`)
-    const files = getFolderContentsArray(projectPath) //pathToWIP + 
-    console.log("files", files)
+let getManifestItems = (files) => {
+  let manifestItems = []
+  let i = 0;
+  for (let filePath of files ) {
+    let canvas = { }
+    let annotPage = { }
+    let annot = { }
+    const dimensions = sizeOf(filePath)
+    canvas.id = `canvas-${filePath}`
+    canvas.type = "Canvas"
+    canvas.width = dimensions.width
+    canvas.height = dimensions.height
+    canvas.label =  {
+      "en": [
+        `Image ${i+1}`
+      ]
+    }
+    annotPage.id = `annotPage-${filePath}`
+    annotPage.type = "AnnotationPage"
+    const fileUrl = `file://${filePath}`//If need fileserver, use: `http://localhost:8000${projectPath}/${fileName}`
+    annot.id = `annot-${filePath}`
+    annot.type = "Annotation"
+    annot.motivation = 'painting'
+    annot.body = {
+      id: fileUrl,
+      type: 'Image',
+      format: `image/jpeg`, //`image/${ext.replace('.', '')}`,
+      width: dimensions.width,
+      height: dimensions.height
+    }
+    annot.target=canvas.id
+    annotPage.items = [annot]
+    canvas.items = [annotPage]
+    manifestItems.push(canvas)
+    i++
+  }
+  return manifestItems
+}
+
+let getManifest = (projectPath) => {
+    let files = getFolderContentsArray(projectPath) //pathToWIP + 
     const manifestId = "Digitization Project" ///+ path.basename(projectPath)
     let manifest = {
       "@context": "http://iiif.io/api/presentation/3/context.json",
@@ -339,50 +356,62 @@ const createWindow = () => {
     }
     // Check if save file exists
     const manifestCache = path.join(path.dirname(projectPath),'.manifest.json')
-    console.log("Checking for: ", manifestCache)
     if(fs.existsSync(manifestCache)) {
       console.log("Exists - restoring state.")
       manifest = JSON.parse(fs.readFileSync(manifestCache, 'utf-8'))
     }
-    manifest['items'] = []
-    let i = 0;
-    for (let filePath of files ) {
-      let canvas = { }
-      let annotPage = { }
-      let annot = { }
-      const dimensions = sizeOf(filePath)
-      canvas.id = `canvas-${filePath}`
-      canvas.type = "Canvas"
-      canvas.width = dimensions.width
-      canvas.height = dimensions.height
-      canvas.label =  {
-        "en": [
-          `Image ${i+1}`
-        ]
-      }
-      annotPage.id = `annotPage-${filePath}`
-      annotPage.type = "AnnotationPage"
-      const ext = path.extname(filePath)
-      const fileName = path.basename(filePath)
-      const fileUrl = `file://${filePath}`//If need fileserver, use: `http://localhost:8000${projectPath}/${fileName}`
-      annot.id = `annot-${filePath}`
-      annot.type = "Annotation"
-      annot.motivation = 'painting'
-      annot.body = {
-        id: fileUrl,
-        type: 'Image',
-        format: `image/jpeg`, //`image/${ext.replace('.', '')}`,
-        width: dimensions.width,
-        height: dimensions.height
-      }
-      annot.target=canvas.id
-      annotPage.items = [annot]
-      canvas.items = [annotPage]
-      manifest.items.push(canvas)
+    manifest['items'] = getManifestItems(files)
+    
+  return manifest
+}
+const createWindow = () => {
+  const win = new BrowserWindow({
+    width: 1200,
+    height: 900,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js')
+    }
+  })
+  
+  ipcMain.handle("saveManifestJSON", async (event, data) => {
+    console.log(data)
+    const folderPath = path.dirname(data['items'][0]['id'].replace("canvas-", ''))
+    const projectPath = path.dirname(folderPath)
+    const pathToSaveTo = path.join(projectPath,'.manifest.json')
+    console.log(pathToSaveTo)
+
+    // Handle any image re-ordering. 
+    // 1. Rename source images while handling duplicates.
+    let i = 0
+    for(let item of data['items']) { 
+      const fileName = item['id'].replace("canvas-", '')
+      console.log(fileName)
+      const ext = path.extname(fileName)
+      const newFileName = path.join( path.dirname(fileName), "tmp."+(i+1).toString().padStart(4, '0')+ext )
+      fs.renameSync( fileName, newFileName )
       i++
     }
-    console.log("manifest", JSON.stringify(manifest))
-    return manifest
+    let files = getFolderContentsArray(folderPath) 
+    for(let filePath of files) { 
+      const newFileName = filePath.replace("tmp.", '')
+      fs.renameSync( filePath, newFileName )
+    }
+    // 2. Re-label and re-order items
+    //files = getFolderContentsArray(folderPath) 
+    //console.log('f2', files)
+    //data['items'] = getManifestItems(files)
+
+    //Write
+    fs.writeFileSync(pathToSaveTo, JSON.stringify(data), 'utf-8') 
+
+    return data
+  })
+
+  ipcMain.handle("createManifest", async (event) => {
+    const handler = await dialog.showOpenDialog({properties: ['openDirectory']})
+    if(!handler.filePaths[0]) return
+    const folderPath = handler.filePaths[0].replace(/\\/g, '/')
+    return getManifest(folderPath)
   })
 
   win.loadFile( path.join(__dirname, '/dist/index.html') )
