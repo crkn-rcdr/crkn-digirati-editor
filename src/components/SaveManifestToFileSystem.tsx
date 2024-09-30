@@ -7,6 +7,8 @@ export function SaveManifestToFileSystem() {
 
   let onSelectPress = () => {
     console.log(vault)
+    //Create hidden .manifest.json
+    //Save images to folder
     /*window.electronAPI.createManifest()
       .then ( res => {
         try {
@@ -27,7 +29,7 @@ export function SaveManifestToFileSystem() {
         onClick={onSelectPress}
         title="Select a folder"
         colorScheme="pink">
-          Select folder
+          Write to Folder
       </Button>
     </h1>
   )

@@ -40,7 +40,7 @@ export function OpenManifestFromURL() {
         onClick={onOpen}
         title="Open manifest from url"
         colorScheme="pink">
-          Open
+          Open URL
       </Button>
     </h1>
   )

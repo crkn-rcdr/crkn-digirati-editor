@@ -39,7 +39,7 @@ export function CreateManifestFromFolder() {
         onClick={onSelectPress}
         title="Select a folder"
         colorScheme="pink">
-          Select folder
+          Read from Folder
       </Button>
     </h1>
   )

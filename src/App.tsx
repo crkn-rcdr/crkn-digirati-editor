@@ -37,8 +37,8 @@ function App() {
             <ChakraProvider>
               <div>
                 <h1>Get started</h1>
-                <OpenManifestFromURL></OpenManifestFromURL>
                 <CreateManifestFromFolder></CreateManifestFromFolder>
+                <OpenManifestFromURL></OpenManifestFromURL>
               </div>
             </ChakraProvider>
           }
