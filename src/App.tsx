@@ -5,40 +5,74 @@ import { ManifestEditor } from "manifest-editor"
 import { VaultProvider } from "react-iiif-vault"
 import { Vault } from "@iiif/helpers/vault"
 import { useState } from "react"
-import { ChakraProvider } from '@chakra-ui/react'
+import { Button, ChakraProvider } from '@chakra-ui/react'
 import { OpenManifestFromURL } from "./components/OpenManifestFromURL"
 import { CreateManifestFromFolder } from "./components/CreateManifestFromFolder"
 import { SaveManifestToFileSystem } from "./components/SaveManifestToFileSystem"
 import { PublishManifestToAPI } from "./components/PublishManifestToAPI"
+import { ChevronDownIcon} from '@chakra-ui/icons'
+import {
+  Menu,
+  MenuButton,
+  MenuList
+} from '@chakra-ui/react'
+
 
 function App() {
-  const manifestId = "Digitization Project"
   const vault = new Vault()
   const [data, setData] = useState()
   vault.subscribe(() => {
-    const manifest = vault.getObject(manifestId)
-    setData(manifest)
+    try {
+      const manifestId = localStorage.getItem("manifest-id")
+      if(typeof manifestId === "string") {
+        const manifest = vault.getObject(manifestId)
+        setData(manifest as any)
+      }
+    } catch (e) {
+      console.log(e)
+    }
   }, true)
     return (
       <VaultProvider vault={vault}>
          {  data ? 
               <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column"}}>
-                    <ChakraProvider>
-                      <div style={{ width: "100vw", display: "flex", flexDirection: "row"}}>
-                        <OpenManifestFromURL></OpenManifestFromURL>
-                        <CreateManifestFromFolder></CreateManifestFromFolder>
-                        <SaveManifestToFileSystem></SaveManifestToFileSystem>
-                        <PublishManifestToAPI></PublishManifestToAPI>
-                      </div>
-                    </ChakraProvider>
-                  <ManifestEditor resource={{ id: manifestId, type: "Manifest" }} data={data as any}/>
+                <ChakraProvider>
+                  <div style={{ width: "100vw", display: "flex", flexDirection: "row", background: "rgb(238 242 247)"}}>              
+                    <Menu>
+                      <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                        Open
+                      </MenuButton>
+                      <MenuList>
+                        <CreateManifestFromFolder/>
+                        <OpenManifestFromURL/>
+                      </MenuList>
+                    </Menu>
+                    <Menu>
+                      <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                        Save
+                      </MenuButton>
+                      <MenuList>
+                        <SaveManifestToFileSystem/>
+                        <PublishManifestToAPI/>
+                      </MenuList>
+                    </Menu>
+                  </div>
+                </ChakraProvider>
+                <ManifestEditor resource={{ id: data['id'], type: "Manifest" }} data={data as any}/>
               </div>
             :
             <ChakraProvider>
               <div>
                 <h1>Get started</h1>
-                <CreateManifestFromFolder></CreateManifestFromFolder>
-                <OpenManifestFromURL></OpenManifestFromURL>
+                <Menu>
+                  <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                    Open
+                  </MenuButton>
+                  <MenuList>
+                    <CreateManifestFromFolder/>
+                    <OpenManifestFromURL/>
+                  </MenuList>
+                </Menu>
               </div>
             </ChakraProvider>
           }

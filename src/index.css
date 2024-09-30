@@ -43,3 +43,8 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+.border-none {
+  border-style: none;
+  border-radius: 0;
+}

@@ -1,46 +1,29 @@
-//import { useEffect } from "react"
 import { useExistingVault } from "react-iiif-vault"
-import { Button } from '@chakra-ui/react'
+import { MenuItem } from '@chakra-ui/react'
 
 export function CreateManifestFromFolder() {
   const vault = useExistingVault()
-  /*useEffect(() => {
-    window.electronAPI.createManifest()
-      .then ( res => {
-        try {
-          vault.loadManifestObject(res["id"], res).then(manifest => {
-            console.log("Loaded manifest: ", manifest)
-          })
-        } catch (e) {
-          console.log("error loading to vault.")
-        }
-        
-    })
-  })*/
 
   let onSelectPress = () => {
     window.electronAPI.createManifest()
       .then ( res => {
         try {
-          vault.loadManifestObject(res["id"], res).then(manifest => {
-            console.log("Loaded manifest: ", manifest)
-          })
+          let id = (Math.random() + 1).toString(36).substring(7)
+          res['id'] = id
+          localStorage.setItem("manifest-id", id)
+          vault.loadManifestSync(res['id'], res)
         } catch (e) {
-          console.log("error loading to vault.")
+          console.log(e)
         }
-        
     })
   }
 
 
   return (
-    <h1>
-      <Button
+      <MenuItem
         onClick={onSelectPress}
-        title="Select a folder"
-        colorScheme="pink">
+        title="Select a folder">
           Read from Folder
-      </Button>
-    </h1>
+      </MenuItem>
   )
 }

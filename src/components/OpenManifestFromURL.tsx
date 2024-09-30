@@ -1,20 +1,11 @@
 //import { useEffect } from "react"
 import { useExistingVault } from "react-iiif-vault"
-import { Button } from '@chakra-ui/react'
+import { MenuItem } from '@chakra-ui/react'
 
 export function OpenManifestFromURL() {
   const vault = useExistingVault()
   /*useEffect(() => {
-    window.electronAPI.createManifest()
-      .then ( res => {
-        try {
-          vault.loadManifestObject(res["id"], res).then(manifest => {
-            console.log("Loaded manifest: ", manifest)
-          })
-        } catch (e) {
-          console.log("error loading to vault.")
-        }
-        
+      popup
     })
   })*/
 
@@ -36,12 +27,11 @@ export function OpenManifestFromURL() {
 
   return (
     <h1>
-      <Button
+      <MenuItem
         onClick={onOpen}
-        title="Open manifest from url"
-        colorScheme="pink">
+        title="Open manifest from url">
           Open URL
-      </Button>
+      </MenuItem>
     </h1>
   )
 }

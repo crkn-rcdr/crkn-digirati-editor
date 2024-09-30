@@ -1,6 +1,6 @@
 //import { useEffect } from "react"
 import { useExistingVault } from "react-iiif-vault"
-import { Button } from '@chakra-ui/react'
+import { MenuItem } from '@chakra-ui/react'
 
 export function SaveManifestToFileSystem() {
   const vault = useExistingVault()
@@ -24,13 +24,10 @@ export function SaveManifestToFileSystem() {
 
 
   return (
-    <h1>
-      <Button
-        onClick={onSelectPress}
-        title="Select a folder"
-        colorScheme="pink">
-          Write to Folder
-      </Button>
-    </h1>
+    <MenuItem
+      onClick={onSelectPress}
+      title="Select a folder">
+        Write to Folder
+    </MenuItem>
   )
 }

@@ -6,8 +6,6 @@ const iiifBuilder = require('@iiif/builder')
 const sizeOf = require("image-size")
 const builder = new iiifBuilder.IIIFBuilder()
 const iiifParser = require( '@iiif/parser' )
-
-const manifestId = "Digitization Project"
 //const { fork } = require('child_process')
 //const ps = fork(`${__dirname}/fileServer.cjs`)
 //console.log("Fileserver running in the bg: ", ps)
@@ -33,6 +31,7 @@ const createWindow = () => {
     console.log(`createManifest from frontend: ${projectPath}`)
     const files = getFolderContentsArray(projectPath) //pathToWIP + 
     console.log("files", files)
+    const manifestId = "Digitization Project" ///+ path.basename(projectPath)
     let manifest = {
       "@context": "http://iiif.io/api/presentation/3/context.json",
       "type" : "Manifest",
