@@ -15,10 +15,7 @@ export function SaveManifestToFileSystem() {
         .then ( res => {
           try {
             console.log("Result", res)
-            /*let id = (Math.random() + 1).toString(36).substring(7)
-            res['id'] = id
-            localStorage.setItem("manifest-id", id)
-            vault.loadManifestSync(res['id'], res)*/
+            //window.location.reload()
           } catch (e) {
             console.log("error loading to vault.")
           }
