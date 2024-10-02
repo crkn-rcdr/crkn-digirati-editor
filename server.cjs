@@ -390,6 +390,10 @@ const createWindow = () => {
       fs.renameSync( filePath, newFileName )
       i++
     }
+    //Note: Openseadragon seems to be caching the image source data...
+    files = getFolderContentsArray(folderPath) 
+    data['items'] = getManifestItems(files)
+
     //Write
     fs.writeFileSync(pathToSaveTo, JSON.stringify(data), 'utf-8') 
 

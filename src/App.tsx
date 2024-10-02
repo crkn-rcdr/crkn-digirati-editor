@@ -4,7 +4,7 @@ import './App.css'
 import { ManifestEditor } from "manifest-editor"
 import { VaultProvider } from "react-iiif-vault"
 import { Vault } from "@iiif/helpers/vault"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button, ChakraProvider } from '@chakra-ui/react'
 import { OpenManifestFromURL } from "./components/OpenManifestFromURL"
 import { CreateManifestFromFolder } from "./components/CreateManifestFromFolder"
@@ -22,6 +22,19 @@ import { UpdateManifestFromFolder } from "./components/UpdateManifestFromFolder"
 function App() {
   const vault = new Vault()
   const [data, setData] = useState()
+  // Set if exists
+  useEffect(() => {
+    const manifest = localStorage.getItem("manifest-data")
+    if(typeof manifest === "string") {
+      try {
+        let storedData = JSON.parse(manifest)
+        setData(storedData as any)
+      } catch(e) {
+        console.log(e)
+      }
+    }
+  }, [])
+  // Watch for changes
   vault.subscribe(() => {
     try {
       const manifestId = localStorage.getItem("manifest-id")

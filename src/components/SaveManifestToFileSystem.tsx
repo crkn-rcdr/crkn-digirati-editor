@@ -15,7 +15,8 @@ export function SaveManifestToFileSystem() {
         .then ( res => {
           try {
             console.log("Result", res)
-            //window.location.reload()
+            localStorage.setItem("manifest-data", JSON.stringify(res))
+            window.location.reload()
           } catch (e) {
             console.log("error loading to vault.")
           }
