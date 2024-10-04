@@ -24,8 +24,8 @@ export function PublishManifestToAPI() {
   return (
       <MenuItem
         onClick={onPublish}
-        title="Publish on Canadiana">
-          Publish on Canadiana
+        title="Save and Publish to API">
+          Save and Publish to API
       </MenuItem>
   )
 }
