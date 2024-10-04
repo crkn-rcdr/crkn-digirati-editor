@@ -72,7 +72,7 @@ function App() {
                     </Menu>
                     <Menu>
                       <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-                        Publish
+                        Save
                       </MenuButton>
                       <MenuList>
                         <WriteManifestToFileSystem label="Save Progress Locally"/>
