@@ -11,7 +11,7 @@ export function WriteManifestToFileSystem(props: any) {
     if(typeof manifestId === "string") {
       const data = vault.toPresentation3({ id: manifestId, type: 'Manifest' })
       console.log("save", data)
-      window.electronAPI.saveManifestJSON(data)
+      window.electronAPI.writeManifestToFileSystem(data)
         .then ( res => {
           try {
             console.log("Result", res)
@@ -29,7 +29,7 @@ export function WriteManifestToFileSystem(props: any) {
   return (
     <MenuItem
       onClick={onSelectPress}
-      title="Select a folder">
+      title={props.label}>
         {props.label}
     </MenuItem>
   )

@@ -20,7 +20,7 @@ const createWindow = () => {
     }
   })
   
-  ipcMain.handle("saveManifestJSON", async (event, data) => {
+  ipcMain.handle("writeManifestToFileSystem", async (event, data) => {
     const folderPath = path.dirname(data['items'][0]['id'].replace("canvas-", ''))
     const projectPath = path.dirname(folderPath)
     const pathToSaveTo = path.join(projectPath,'.manifest.json')
@@ -49,7 +49,7 @@ const createWindow = () => {
     return data
   })
 
-  ipcMain.handle("ReadManifestFromFileSystem", async (event) => {
+  ipcMain.handle("readManifestFromFileSystem", async (event) => {
     const handler = await dialog.showOpenDialog({properties: ['openDirectory']})
     if(!handler.filePaths[0]) return
     const folderPath = handler.filePaths[0].replace(/\\/g, '/')

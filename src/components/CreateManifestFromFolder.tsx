@@ -23,8 +23,8 @@ export function CreateManifestFromFolder() {
   return (
       <MenuItem
         onClick={onSelectPress}
-        title="Select a folder">
-          Create New Project From Folder
+        title="Create New Project from Folder">
+          Create New Project from Folder
       </MenuItem>
   )
 }

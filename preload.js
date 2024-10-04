@@ -6,6 +6,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   electron: () => process.versions.electron,
   // we can also expose variables, not just functions
   createManifestFromFolder: () => ipcRenderer.invoke('createManifestFromFolder'),
-  ReadManifestFromFileSystem: () => ipcRenderer.invoke('ReadManifestFromFileSystem'),
-  saveManifestJSON: (data) => ipcRenderer.invoke('saveManifestJSON', data)
+  readManifestFromFileSystem: () => ipcRenderer.invoke('readManifestFromFileSystem'),
+  writeManifestToFileSystem: (data) => ipcRenderer.invoke('writeManifestToFileSystem', data)
 })

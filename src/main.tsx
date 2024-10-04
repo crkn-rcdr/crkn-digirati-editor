@@ -10,7 +10,7 @@ interface IElectronAPI {
   electron: () => string,
   createManifestFromFolder: () => Promise<any>,
   readManifestFromFileSystem: () => Promise<any>,
-  saveManifestJSON: (data:any) => Promise<any>,
+  writeManifestToFileSystem: (data:any) => Promise<any>,
 }
 declare global {
   interface Window {

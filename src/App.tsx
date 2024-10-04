@@ -92,7 +92,7 @@ function App() {
                     Open
                   </MenuButton>
                   <MenuList>
-                    <ReadManifestFromFileSystem/>
+                    <ReadManifestFromFileSystem label="Open Project from Folder"/>
                     <OpenManifestFromURL/>
                   </MenuList>
                 </Menu>

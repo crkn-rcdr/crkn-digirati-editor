@@ -24,7 +24,7 @@ export function PublishManifestToAPI() {
   return (
       <MenuItem
         onClick={onPublish}
-        title="Publish manifest">
+        title="Publish on Canadiana">
           Publish on Canadiana
       </MenuItem>
   )

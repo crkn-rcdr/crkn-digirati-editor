@@ -21,7 +21,7 @@ export function ReadManifestFromFileSystem(props: any) {
   return (
       <MenuItem
         onClick={onSelectPress}
-        title="Select a folder">
+        title={props.label}>
           {props.label}
       </MenuItem>
   )
