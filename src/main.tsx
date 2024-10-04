@@ -8,7 +8,8 @@ interface IElectronAPI {
   node: () => string,
   chrome: () => string,
   electron: () => string,
-  createManifest: () => Promise<any>,
+  createManifestFromFolder: () => Promise<any>,
+  readManifestFromFileSystem: () => Promise<any>,
   saveManifestJSON: (data:any) => Promise<any>,
 }
 declare global {

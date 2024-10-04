@@ -2,7 +2,7 @@
 import { useExistingVault } from "react-iiif-vault"
 import { MenuItem } from '@chakra-ui/react'
 
-export function SaveManifestToFileSystem() {
+export function WriteManifestToFileSystem(props: any) {
   const vault = useExistingVault()
 
   let onSelectPress = () => {
@@ -30,7 +30,7 @@ export function SaveManifestToFileSystem() {
     <MenuItem
       onClick={onSelectPress}
       title="Select a folder">
-        Write to Folder
+        {props.label}
     </MenuItem>
   )
 }

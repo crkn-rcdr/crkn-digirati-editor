@@ -7,8 +7,8 @@ import { Vault } from "@iiif/helpers/vault"
 import { useEffect, useState } from "react"
 import { Button, ChakraProvider } from '@chakra-ui/react'
 import { OpenManifestFromURL } from "./components/OpenManifestFromURL"
-import { CreateManifestFromFolder } from "./components/CreateManifestFromFolder"
-import { SaveManifestToFileSystem } from "./components/SaveManifestToFileSystem"
+//import { CreateManifestFromFolder } from "./components/CreateManifestFromFolder"
+import { WriteManifestToFileSystem } from "./components/WriteManifestToFileSystem"
 import { PublishManifestToAPI } from "./components/PublishManifestToAPI"
 import { ChevronDownIcon} from '@chakra-ui/icons'
 import {
@@ -16,7 +16,7 @@ import {
   MenuButton,
   MenuList
 } from '@chakra-ui/react'
-import { UpdateManifestFromFolder } from "./components/UpdateManifestFromFolder"
+import { ReadManifestFromFileSystem } from "./components/ReadManifestFromFileSystem"
 
 
 function App() {
@@ -57,16 +57,25 @@ function App() {
                         Open
                       </MenuButton>
                       <MenuList>
-                        <UpdateManifestFromFolder/>
+                        <ReadManifestFromFileSystem label="Open Project from Folder"/>
                         <OpenManifestFromURL/>
                       </MenuList>
                     </Menu>
                     <Menu>
                       <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-                        Save
+                        Tools
                       </MenuButton>
                       <MenuList>
-                        <SaveManifestToFileSystem/>
+                        <ReadManifestFromFileSystem label="Read Images from Folder"/>
+                        <WriteManifestToFileSystem label="Write Images to Folder"/>
+                      </MenuList>
+                    </Menu>
+                    <Menu>
+                      <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                        Publish
+                      </MenuButton>
+                      <MenuList>
+                        <WriteManifestToFileSystem label="Save Progress Locally"/>
                         <PublishManifestToAPI/>
                       </MenuList>
                     </Menu>
@@ -83,7 +92,7 @@ function App() {
                     Open
                   </MenuButton>
                   <MenuList>
-                    <CreateManifestFromFolder/>
+                    <ReadManifestFromFileSystem/>
                     <OpenManifestFromURL/>
                   </MenuList>
                 </Menu>

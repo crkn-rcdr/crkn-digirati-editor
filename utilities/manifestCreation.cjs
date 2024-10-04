@@ -44,7 +44,7 @@ let getManifestItems = (files) => {
     }
     return manifestItems
 }
-let getManifest = (projectPath) => {
+let getManifest = (projectPath, manifestCache) => {
     let files = getFolderContentsArray(projectPath) //pathToWIP + 
     const manifestId = "Digitization Project" ///+ path.basename(projectPath)
     let manifest = {
@@ -344,9 +344,8 @@ let getManifest = (projectPath) => {
       "items": []
     }
     // Check if save file exists
-    const manifestCache = path.join(path.dirname(projectPath),'.manifest.json')
-    if(fs.existsSync(manifestCache)) {
-      manifest = JSON.parse(fs.readFileSync(manifestCache, 'utf-8'))
+    if(typeof manifestCache !== "undefined") {
+      manifest = manifestCache
     }
     manifest['items'] = getManifestItems(files)
       

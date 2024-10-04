@@ -48,3 +48,7 @@ button:focus-visible {
   border-style: none;
   border-radius: 0;
 }
+
+div[data-popper-placement="bottom-start"] {
+  z-index: 10000;
+}

@@ -41,21 +41,32 @@ const createWindow = () => {
       fs.renameSync( filePath, newFileName )
       i++
     }
-    //Note: Openseadragon seems to be caching the image source data...
+    //Note: Openseadragon seems to be caching the image source data, so I reload the page on the client side.
     files = getFolderContentsArray(folderPath) 
     data['items'] = getManifestItems(files)
-
     //Write
     fs.writeFileSync(pathToSaveTo, JSON.stringify(data), 'utf-8') 
-
     return data
   })
 
-  ipcMain.handle("createManifest", async (event) => {
+  ipcMain.handle("ReadManifestFromFileSystem", async (event) => {
     const handler = await dialog.showOpenDialog({properties: ['openDirectory']})
     if(!handler.filePaths[0]) return
     const folderPath = handler.filePaths[0].replace(/\\/g, '/')
+    // Check if save file exists
+    const manifestCache = path.join(path.dirname(folderPath),'.manifest.json')
+    if(fs.existsSync(manifestCache)) {
+      manifest = JSON.parse(fs.readFileSync(manifestCache, 'utf-8'))
+    }
     return getManifest(folderPath)
+  })
+
+  // Not used right now.
+  ipcMain.handle("createManifestFromFolder", async (event) => {
+    const handler = await dialog.showOpenDialog({properties: ['openDirectory']})
+    if(!handler.filePaths[0]) return
+    const folderPath = handler.filePaths[0].replace(/\\/g, '/')
+    return getManifest(folderPath, null)
   })
 
   win.loadFile( path.join(__dirname, '/dist/index.html') )

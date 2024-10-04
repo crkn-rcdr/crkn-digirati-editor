@@ -5,11 +5,12 @@ export function CreateManifestFromFolder() {
   const vault = useExistingVault()
 
   let onSelectPress = () => {
-    window.electronAPI.createManifest()
+    window.electronAPI.createManifestFromFolder()
       .then ( res => {
         try {
           let id = (Math.random() + 1).toString(36).substring(7)
           res['id'] = id
+          localStorage.removeItem("manifest-data")
           localStorage.setItem("manifest-id", id)
           vault.loadManifestSync(res['id'], res)
         } catch (e) {
@@ -23,7 +24,7 @@ export function CreateManifestFromFolder() {
       <MenuItem
         onClick={onSelectPress}
         title="Select a folder">
-          Read from Folder
+          Create New Project From Folder
       </MenuItem>
   )
 }

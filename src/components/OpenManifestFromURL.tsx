@@ -31,7 +31,7 @@ export function OpenManifestFromURL() {
       <MenuItem
         onClick={onOpen}
         title="Open manifest from url">
-          Open URL
+          Open Project From URL
       </MenuItem>
     </h1>
   )
