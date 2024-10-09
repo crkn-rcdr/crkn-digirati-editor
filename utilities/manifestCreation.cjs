@@ -191,7 +191,7 @@ let getManifest = (projectPath, manifestCache) => {
           },
           "value": {
             "en": [
-              "Add "
+              "Add volume/issue info"
             ]
           }
         },
@@ -203,7 +203,19 @@ let getManifest = (projectPath, manifestCache) => {
           },
           "value": {
             "en": [
-              "Add issue date"
+              "Add issue date, ex: 1876 OR 1934-02-23"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Coverage Date"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add coverage date, ex: 1923/1935 OR 1902-10 OR 1883-01-03/1884-02-22"
             ]
           }
         },
@@ -271,7 +283,7 @@ let getManifest = (projectPath, manifestCache) => {
         {
           "label": {
             "en": [
-              "Number of Pages "
+              "Number of Pages"
             ]
           },
           "value": {
@@ -307,7 +319,7 @@ let getManifest = (projectPath, manifestCache) => {
         {
           "label": {
             "en": [
-              "Dots Per Inch"
+              "Dots per Inch"
             ]
           },
           "value": {
