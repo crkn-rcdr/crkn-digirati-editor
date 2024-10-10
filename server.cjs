@@ -4,6 +4,7 @@ const getFolderContentsArray = require('./utilities/getFolderContentsArray.cjs')
 const { ipcMain, dialog } = require("electron")
 const fs = require('fs')
 const { getManifest, getManifestItems } = require("./utilities/manifestCreation.cjs")
+const writeDcCsv = require("./utilities/writeDcCsv.cjs")
 //const { fork } = require('child_process')
 //const ps = fork(`${__dirname}/fileServer.cjs`)
 //console.log("Fileserver running in the bg: ", ps)
@@ -18,6 +19,39 @@ const createWindow = () => {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     }
+  })
+
+  ipcMain.handle("pushManifestToApis", async (event, data) => {
+    let result = writeDcCsv(data)
+    console.log(result)
+    if (result.success) {
+      // remove fields from manifest
+      let fieldsToRemove = [ 
+        "InMagic Identifier",
+        "CIHM Identifier",
+        "Alternate Title", //(must be the second title column in the record)
+        "Volume/Issue", //(we concatenate this field with the main title field)
+        "Issue Date",
+        "Coverage Date",
+        "Language",
+        "Place of Publication",
+        "Publisher",
+        "Publication Date",
+        "Source"
+      ]
+      let newMetadata = []
+      for (let field of data["metadata"]) { 
+        console.log(field['label']['en'], fieldsToRemove.includes(field['label']['en'][0]))
+        if(!fieldsToRemove.includes(field['label']['en'][0])) {
+          newMetadata.push(field)
+        }
+      }
+      data['metadata'] = newMetadata
+    } else {
+      // display error popup
+      dialog.showErrorBox('Error', result.message) 
+    }
+    return { result, data }
   })
   
   ipcMain.handle("writeManifestToFileSystem", async (event, data) => {

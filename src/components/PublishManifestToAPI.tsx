@@ -7,17 +7,23 @@ export function PublishManifestToAPI() {
 
   let onPublish = () => {
     console.log(vault)
-    /*window.electronAPI.createManifest()
-      .then ( res => {
-        try {
-          vault.loadManifestObject(res["id"], res).then(manifest => {
-            console.log("Loaded manifest: ", manifest)
-          })
-        } catch (e) {
-          console.log("error loading to vault.")
-        }
-        
-    })*/
+    const manifestId = localStorage.getItem("manifest-id")
+    if(typeof manifestId === "string") {
+      const data = vault.toPresentation3({ id: manifestId, type: 'Manifest' })
+      console.log("save", data)
+      window.electronAPI.pushManifestToApis(data)
+        .then ( res => { // {result, data}
+          try {
+            console.log("Result", res)
+            if(res.result.success) {
+              localStorage.setItem("manifest-data", JSON.stringify(res.data))
+              window.location.reload()
+            }
+          } catch (e) {
+            console.log("error loading to vault.")
+          }
+        })
+    }
   }
 
 

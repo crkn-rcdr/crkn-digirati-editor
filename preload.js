@@ -7,5 +7,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // we can also expose variables, not just functions
   createManifestFromFolder: () => ipcRenderer.invoke('createManifestFromFolder'),
   readManifestFromFileSystem: () => ipcRenderer.invoke('readManifestFromFileSystem'),
-  writeManifestToFileSystem: (data) => ipcRenderer.invoke('writeManifestToFileSystem', data)
+  writeManifestToFileSystem: (data) => ipcRenderer.invoke('writeManifestToFileSystem', data),
+  pushManifestToApis: (data) => ipcRenderer.invoke('pushManifestToApis', data)
 })
