@@ -21,6 +21,10 @@ const createWindow = () => {
     }
   })
 
+  ipcMain.handle("triggerLegacyIngest", async (event, data) => {
+    
+  })
+
   ipcMain.handle("pushManifestToApis", async (event, data) => {
     let result = writeDcCsv(data)
     console.log(result)
@@ -47,6 +51,8 @@ const createWindow = () => {
         }
       }
       data['metadata'] = newMetadata
+
+      // TODO: send to IIIF API - get response, add SeeAlso for marc metadata, and resend
     } else {
       // display error popup
       dialog.showErrorBox('Error', result.message) 
