@@ -127,13 +127,10 @@ app.whenReady().then(() => {
         show: false, 
         'node-integration': false,
         'web-security': false
-      });
-      // This is just an example url - follow the guide for whatever service you are using
+      })
       var authUrl = 'https://access.canadiana.ca'
-      
       authWindow.loadURL(authUrl);
       authWindow.show()
-
       authWindow.webContents.on('did-navigate-in-page', (cookie) => {
         const ses = authWindow.webContents.session
         ses.cookies.get({name:"auth_token"})
@@ -148,7 +145,6 @@ app.whenReady().then(() => {
               console.log(error)
           })
       })
-
       authWindow.on('closed', function() {
         authWindow = null
         createWindow()
