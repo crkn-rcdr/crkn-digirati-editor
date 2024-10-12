@@ -8,5 +8,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   createManifestFromFolder: () => ipcRenderer.invoke('createManifestFromFolder'),
   readManifestFromFileSystem: () => ipcRenderer.invoke('readManifestFromFileSystem'),
   writeManifestToFileSystem: (data) => ipcRenderer.invoke('writeManifestToFileSystem', data),
-  pushManifestToApis: (data) => ipcRenderer.invoke('pushManifestToApis', data)
+  pushManifestToApis: (data) => ipcRenderer.invoke('pushManifestToApis', data),
+  triggerLegacyIngest: (slug) => ipcRenderer.invoke('triggerLegacyIngest', slug),
 })

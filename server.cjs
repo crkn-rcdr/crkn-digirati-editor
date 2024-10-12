@@ -1,17 +1,18 @@
 const { app, BrowserWindow } = require('electron')
 const path = require('path')
 const getFolderContentsArray = require('./utilities/getFolderContentsArray.cjs')
+const legacyIngestTrigger = require('./utilities/legacyIngestTrigger.cjs')
 const { ipcMain, dialog } = require("electron")
 const fs = require('fs')
 const { getManifest, getManifestItems } = require("./utilities/manifestCreation.cjs")
 const writeDcCsv = require("./utilities/writeDcCsv.cjs")
+const Store = require('electron-store')
 //const { fork } = require('child_process')
 //const ps = fork(`${__dirname}/fileServer.cjs`)
 //console.log("Fileserver running in the bg: ", ps)
 /*
 const { download } = import('electron-dl')
 */
-
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 1200,
@@ -21,8 +22,10 @@ const createWindow = () => {
     }
   })
 
-  ipcMain.handle("triggerLegacyIngest", async (event, data) => {
-    
+  ipcMain.handle("triggerLegacyIngest", async (event, slug) => {
+    let response = await legacyIngestTrigger(slug, AUTH_TOKEN)
+    console.log(response)
+    return response.status == 200
   })
 
   ipcMain.handle("pushManifestToApis", async (event, data) => {
@@ -113,12 +116,46 @@ const createWindow = () => {
 }
 
 app.whenReady().then(() => {
-  createWindow()
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
+    // Use the access platform app for auth
+    const store = new Store()
+    let AUTH_TOKEN = store.get('AUTH_TOKEN')
+    console.log("stored AUTH_TOKEN", AUTH_TOKEN)
+    if(typeof AUTH_TOKEN === "undefined") {
+      var authWindow = new BrowserWindow({
+        width: 800, 
+        height: 600, 
+        show: false, 
+        'node-integration': false,
+        'web-security': false
+      });
+      // This is just an example url - follow the guide for whatever service you are using
+      var authUrl = 'https://access.canadiana.ca'
+      
+      authWindow.loadURL(authUrl);
+      authWindow.show()
+
+      authWindow.webContents.on('did-navigate-in-page', (cookie) => {
+        const ses = authWindow.webContents.session
+        ses.cookies.get({name:"auth_token"})
+          .then((cookies) => {
+            if(cookies.length) {
+              AUTH_TOKEN = cookies[0].value
+              store.set('AUTH_TOKEN', AUTH_TOKEN)
+            }
+            console.log("AUTH_TOKEN", AUTH_TOKEN)
+            // TODO: close window
+          }).catch((error) => {
+              console.log(error)
+          })
+      })
+
+      authWindow.on('closed', function() {
+        authWindow = null
+        createWindow()
+      })
+    } else {
       createWindow()
     }
-  })
 })
 
 app.on('window-all-closed', () => {
