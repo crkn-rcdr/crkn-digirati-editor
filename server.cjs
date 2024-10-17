@@ -46,16 +46,33 @@ const createWindow = () => {
         "Publication Date",
         "Source"
       ]
+
+      let slug = ''
       let newMetadata = []
       for (let field of data["metadata"]) { 
         console.log(field['label']['en'], fieldsToRemove.includes(field['label']['en'][0]))
         if(!fieldsToRemove.includes(field['label']['en'][0])) {
           newMetadata.push(field)
         }
+        if(field['label']['en'] === "Slug") slug = field['value']['en']
       }
       data['metadata'] = newMetadata
 
       // TODO: send to IIIF API - get response, add SeeAlso for marc metadata, and resend
+      let canvasFile = data['items'][0]['id']
+      const fileStream = fs.createReadStream(canvasFile)
+      fetch('http://127.0.0.1:8000/', {
+        method: 'POST',
+        body: {
+          slug, // manifest slug -> britt2
+          sequenceNum: 1, // canvas sequence
+          data: { // file data
+            fileStream
+          }
+        }
+        }).then(response => {
+        // handle response
+        });
     } else {
       // display error popup
       dialog.showErrorBox('Error', result.message) 
