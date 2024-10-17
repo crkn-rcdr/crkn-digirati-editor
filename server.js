@@ -3,12 +3,13 @@ import fastifyStatic from '@fastify/static'
 import fastifyMultipart from '@fastify/multipart'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { pipeline } from 'node:stream/promises'
 import imageApiStorage from './utils/imageApiStorage.js'
 import imageConversion from './utils/imageConversion.js'
-import imageMetadata from './utils/imageMetadata.js'
 import getStreamMd5 from './utils/getStreamMd5.js'
+import mintNoid from './utils/mintNoid.js'
 import createCanvasInCouch from './utils/createCanvasInCouch.js'
+import fs from 'fs/promises'
+import { createReadStream } from 'fs' 
 
 const imageApiStorageClient = imageApiStorage()
 
@@ -22,8 +23,10 @@ const fastify = Fastify({
 fastify.register(fastifyStatic, {
     root: path.join(__dirname, 'dist'),
 })
-fastify.register(fastifyMultipart)
 
+fastify.register(fastifyMultipart, {
+   throwFileSizeLimit: false
+})
 
 fastify.get('/', function (req, reply) {
   reply.sendFile('index.html')
@@ -38,8 +41,12 @@ fastify.get('/', function (req, reply) {
 // Create
 fastify.post('/createCanvas', async function (req, reply) {
   // process a single image file
-  const data = await req.file()
-  console.log(data)
+  const data = await req.file({
+   limits: {
+     fileSize: 100 * 1024 * 1024,  // 1mb limit
+   }
+ })
+  console.log("data.file", data.file)
   /*
   data.file // stream
   data.fields // other parsed parts
@@ -53,66 +60,81 @@ fastify.post('/createCanvas', async function (req, reply) {
   const slug = 'britt2'
 
   // Decrease quality
-  let stream = await pipeline(data.file, fs.createWriteStream(data.filename))
-  stream = await imageConversion(stream)
+  let buffer = await data.toBuffer() //await pipeline(data.file, fs.createWriteStream(data.filename))
+  await fs.writeFile('original.jpg', buffer)
+  const imageInfo = await imageConversion(buffer)
 
   // Create records in swift and database
-  const canvasNoid = mintNoid('canvas')
-  let swiftResult = await imageApiStorageClient.accessFiles.create(canvasNoid, stream)
-  console.log(swiftResult)
-  let imageInfo = await imageMetadata(stream)
+  const canvasNoid = await mintNoid('canvas')
+  console.log("canvasNoid", `${canvasNoid}.jpg`)
+
+  const stream = createReadStream('output.jpg')
+  let swiftResult = await imageApiStorageClient.accessFiles.create(`${canvasNoid}.jpg`, stream)
+  console.log("swiftResult", swiftResult)
+
+  // Here 
   let md5 = await getStreamMd5(stream)
-  let couchResult = createCanvasInCouch(
+  console.log(
+   canvasNoid, 
+   imageInfo.height, 
+   imageInfo.width, 
+   imageInfo.size, 
+   md5
+  )
+  console.log("md5", swiftResult)
+  let couchResult = await createCanvasInCouch(
     canvasNoid, 
     imageInfo.height, 
     imageInfo.width, 
     imageInfo.size, 
     md5
   )
-  console.log(couchResult)
+  console.log("couchResult", couchResult)
 
   // Return remote canvas info
+  const manifestNoid = await mintNoid('manifest')
   const encodedNoid = encodeURIComponent(canvasNoid)
-  reply.send({
-    "id" : `https://${portalHost}/iiif/${slug}/canvas/p${sequenceNum}`, // Todo: this will need to change when you get an example of the stand alone API
-    "width" : imageInfo.width,
-    "height" : imageInfo.height,
-    "items" : [
-       {
-          "id" : `https://${portalHost}/iiif/${slug}/page/p${sequenceNum}/main1`,
-          "items" : [
-             {
-                "body" : {
-                   "format" : "image/jpeg",
-                   "height" : imageInfo.height,
-                   "id" : `https://image-tor.canadiana.ca/iiif/2/${encodedNoid}/full/max/0/default.jpg`,
-                   "service" : [
-                      {
-                         "id" : `https://image-tor.canadiana.ca/iiif/2/${encodedNoid}`,
-                         "profile" : "level2",
-                         "type" : "ImageService2"
-                      }
-                   ],
-                   "type" : "Image",
-                   "width" : imageInfo.width
-                },
-                "id" : `https://${portalHost}/iiif/${slug}/annotation/p${sequenceNum}/image`,
-                "motivation" : "painting",
-                "target" : `https://${portalHost}/iiif/${slug}/canvas/p${sequenceNum}`,
-                "type" : "Annotation"
-             }
-          ],
-          "type" : "AnnotationPage"
-       }
-    ],
-    "thumbnail" : [
-       {
-          "format" : "image/jpeg",
-          "id" : `https://image-uab.canadiana.ca/iiif/2/${encodedNoid}/full/max/0/default.jpg`,
-          "type" : "Image"
-       }
-    ]
-  })
+  reply.send(
+   {
+      "id": `https://crkn-iiif-presentation-api.azurewebsites.net/canvas/${canvasNoid}`,
+      "height": imageInfo.height,
+      "width": imageInfo.width,
+      "thumbnail": [
+          {
+              "id": `https://image-tor.canadiana.ca/iiif/2/${encodedNoid}/full/max/0/default.jpg`,
+              "type": "Image",
+              "format": "image/jpeg"
+          }
+      ],
+      "items": [
+          {
+              "id": `https://crkn-iiif-presentation-api.azurewebsites.net/${manifestNoid}/annotationpage/${canvasNoid}/main`,
+              "type": "AnnotationPage",
+              "items": [
+                  {
+                      "id": `https://crkn-iiif-presentation-api.azurewebsites.net/${manifestNoid}/annotation/${canvasNoid}/main/image`,
+                      "body": {
+                          "id": `https://image-tor.canadiana.ca/iiif/2/${encodedNoid}/full/max/0/default.jpg`,
+                          "type": "Image",
+                          "width": imageInfo.width,
+                          "format": "image/jpeg",
+                          "height": imageInfo.height,
+                          "service": [
+                              {
+                                  "id": `https://image-tor.canadiana.ca/iiif/2/${encodedNoid}`,
+                                  "type": "ImageService2",
+                                  "profile": "level2"
+                              }
+                          ]
+                      },
+                      "type": "Annotation",
+                      "target": `https://crkn-iiif-presentation-api.azurewebsites.net/canvas/${canvasNoid}`,
+                      "motivation": "painting"
+                  }
+              ]
+          }
+      ]
+   })
 })
 
 // Run the server!

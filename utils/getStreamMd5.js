@@ -1,4 +1,3 @@
-import fs from 'fs'
 import crypto from 'crypto'
 // See: https://dev.to/saranshk/how-to-get-the-hash-of-a-file-in-nodejs-1bdk
 export default function getHash (stream) {

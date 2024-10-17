@@ -29,6 +29,6 @@ export default async function createCanvasInCouch(noid, height, width, size, md5
           "url": `https://image-tor.canadiana.ca/iiif/2/${encodedNoid}/info.json`
         }
     }
-    const canvasResult = couch.insert("canvas", canvas) //).then(({data, headers, status}) => {
+    const canvasResult = await couch.insert("canvas", canvas) //).then(({data, headers, status}) => {
     return canvasResult.data
 }
