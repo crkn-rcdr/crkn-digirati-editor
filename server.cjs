@@ -7,6 +7,8 @@ const fs = require('fs')
 const { getManifest, getManifestItems } = require("./utilities/manifestCreation.cjs")
 const writeDcCsv = require("./utilities/writeDcCsv.cjs")
 const Store = require('electron-store')
+const axios = require('axios')
+
 //const { fork } = require('child_process')
 //const ps = fork(`${__dirname}/fileServer.cjs`)
 //console.log("Fileserver running in the bg: ", ps)
@@ -62,15 +64,32 @@ const createWindow = () => {
       //canvas-C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/project/step 2/0001.jpg
       let canvasFile = data['items'][0]['id'].replace("canvas-", "")
       console.log(canvasFile)
-      const fileStream = fs.createReadStream(canvasFile)
-      console.log(fileStream)
+      const fileData = fs.readFileSync(canvasFile)
+      console.log(fileData)
+      const blob = new Blob([fileData])
+      //fs.writeFileSync('test.jpg', Buffer.from( await blob.arrayBuffer() ))
       const formData  = new FormData()
-      formData.append("file", fileStream)
+      formData.append("file", blob, path.basename(canvasFile) )
       console.log(formData)
-      let response = await fetch('http://127.0.0.1:8000/createCanvas', {
+      /*let response = await fetch('http://127.0.0.1:8000/createCanvas', {
         method: 'POST',
         body: formData
+      })*/
+      // Or any readable stream
+      const response = await fetch("http://127.0.0.1:8000/createCanvas", {
+        method: 'POST',
+        body: formData,
       })
+      
+      /*await axios({
+        method: "post",
+        url: ,
+        data: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+      })*/
+
       console.log(response)
     } else {
       // display error popup
