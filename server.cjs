@@ -64,11 +64,12 @@ const createWindow = () => {
       console.log(canvasFile)
       const fileStream = fs.createReadStream(canvasFile)
       const formData  = new FormData()
-      formData.append(file, fileStream)
+      formData.append("file", fileStream)
       let response = await fetch('http://127.0.0.1:8000/createCanvas', {
         method: 'POST',
         body: formData
       })
+      console.log(response)
     } else {
       // display error popup
       dialog.showErrorBox('Error', result.message) 
