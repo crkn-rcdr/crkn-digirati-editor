@@ -55,13 +55,12 @@ fastify.post('/createCanvas', async function (req, reply) {
   data.encoding
   data.mimetype
   */
-  const portalHost = 'www.canadiana.ca'
   const sequenceNum = 1
-  const slug = 'britt2'
+  const manifestNoid = await mintNoid('manifest') // data.<> ||
 
   // Decrease quality
   let buffer = await data.toBuffer() //await pipeline(data.file, fs.createWriteStream(data.filename))
-  await fs.writeFile('original.jpg', buffer)
+  //await fs.writeFile('original.jpg', buffer)
   const imageInfo = await imageConversion(buffer)
 
   // Create records in swift and database
@@ -71,9 +70,7 @@ fastify.post('/createCanvas', async function (req, reply) {
   const stream = createReadStream('output.jpg')
   let swiftResult = await imageApiStorageClient.accessFiles.create(`${canvasNoid}.jpg`, stream)
   console.log("swiftResult", swiftResult)
-
-  // Here 
-  let md5 = await getStreamMd5(stream)
+  let md5 = getStreamMd5(stream)
   console.log(
    canvasNoid, 
    imageInfo.height, 
@@ -81,7 +78,6 @@ fastify.post('/createCanvas', async function (req, reply) {
    imageInfo.size, 
    md5
   )
-  console.log("md5", swiftResult)
   let couchResult = await createCanvasInCouch(
     canvasNoid, 
     imageInfo.height, 
@@ -92,7 +88,6 @@ fastify.post('/createCanvas', async function (req, reply) {
   console.log("couchResult", couchResult)
 
   // Return remote canvas info
-  const manifestNoid = await mintNoid('manifest')
   const encodedNoid = encodeURIComponent(canvasNoid)
   reply.send(
    {

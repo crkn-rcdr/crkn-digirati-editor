@@ -1,13 +1,7 @@
-import NodeCouchDb from 'node-couchdb'
-const couchExternal = new NodeCouchDb({
-    host: process.env.COUCH_HOST,
-    protocol: 'http',
-    port: process.env.COUCH_PORT,
-    auth: {
-        user: process.env.COUCH_USER,
-        pass: process.env.COUCH_PASS
-    }
-})
+import nano from 'nano'
+const couch = nano(`http://${process.env.COUCH_USER}:${process.env.COUCH_PASS}@${process.env.COUCH_HOST}:${process.env.COUCH_PORT}`);
+const canvasDb = couch.db.use('canvas')
+//canvasDb.get("69429/c00000000334").then(r => {console.log(r)})
 
 /*
 See: https://www.npmjs.com/package/node-couchdb
@@ -29,6 +23,7 @@ export default async function createCanvasInCouch(noid, height, width, size, md5
           "url": `https://image-tor.canadiana.ca/iiif/2/${encodedNoid}/info.json`
         }
     }
-    const canvasResult = await couch.insert("canvas", canvas) //).then(({data, headers, status}) => {
-    return canvasResult.data
+    const canvasResult = await canvasDb.insert(canvas) //).then(({data, headers, status}) => {
+
+    return canvasResult
 }

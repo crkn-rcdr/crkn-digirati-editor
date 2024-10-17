@@ -1,10 +1,7 @@
 import crypto from 'crypto'
+import { readFileSync } from 'fs' 
 // See: https://dev.to/saranshk/how-to-get-the-hash-of-a-file-in-nodejs-1bdk
 export default function getHash (stream) {
-  return new Promise((resolve, reject) => {
-    const hash = crypto.createHash('sha256')
-    stream.on('error', reject);
-    stream.on('data', chunk => hash.update(chunk))
-    stream.on('end', () => resolve(hash.digest('hex')))
-  })
+  const readmd5 = readFileSync("output.jpg");
+  return crypto.createHash("md5").update(readmd5).digest("hex");
 }
