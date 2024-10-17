@@ -39,6 +39,7 @@ fastify.get('/', function (req, reply) {
 fastify.post('/createCanvas', async function (req, reply) {
   // process a single image file
   const data = await req.file()
+  console.log(data)
   /*
   data.file // stream
   data.fields // other parsed parts
