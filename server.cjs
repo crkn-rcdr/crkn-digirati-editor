@@ -60,19 +60,14 @@ const createWindow = () => {
 
       // TODO: send to IIIF API - get response, add SeeAlso for marc metadata, and resend
       let canvasFile = data['items'][0]['id']
+      console.log(canvasFile)
       const fileStream = fs.createReadStream(canvasFile)
-      fetch('http://127.0.0.1:8000/createCanvas', {
+      const formData  = new FormData()
+      formData.append(file, fileStream)
+      let response = await fetch('http://127.0.0.1:8000/createCanvas', {
         method: 'POST',
-        body: {
-          slug, // manifest slug -> britt2
-          sequenceNum: 1, // canvas sequence
-          data: { // file data
-            fileStream
-          }
-        }
-        }).then(response => {
-        // handle response
-        });
+        body: formData
+      })
     } else {
       // display error popup
       dialog.showErrorBox('Error', result.message) 
