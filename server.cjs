@@ -59,7 +59,8 @@ const createWindow = () => {
       data['metadata'] = newMetadata
 
       // TODO: send to IIIF API - get response, add SeeAlso for marc metadata, and resend
-      let canvasFile = data['items'][0]['id']
+      //canvas-C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/project/step 2/0001.jpg
+      let canvasFile = data['items'][0]['id'].replace("canvas-", "")
       console.log(canvasFile)
       const fileStream = fs.createReadStream(canvasFile)
       const formData  = new FormData()
