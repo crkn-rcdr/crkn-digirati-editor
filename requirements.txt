@@ -7,3 +7,6 @@ Requests==2.32.3
 typing_extensions==4.12.2
 python-multipart==0.0.12
 fastapi[standard]
+pydantic
+pydantic-settings
+fastapi-azure-auth

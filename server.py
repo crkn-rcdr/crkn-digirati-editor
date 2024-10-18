@@ -5,15 +5,25 @@ import hashlib
 from PIL import Image
 from PIL.ExifTags import TAGS
 from typing import List
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, Security
 from fastapi.responses import HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi_azure_auth import SingleTenantAzureAuthorizationCodeBearer
+from pydantic import AnyHttpUrl, computed_field
 from typing_extensions import Annotated
 import requests
 from dotenv import load_dotenv
 import os
 import couchdb 
-load_dotenv(".env")
+from pydantic import AnyHttpUrl
+from pydantic_settings import BaseSettings
 
+load_dotenv(".env")
+APP_CLIENT_ID=os.getenv('APP_CLIENT_ID')
+TENANT_ID=os.getenv('TENANT_ID')
+OPENAPI_CLIENT_ID=os.getenv('OPENAPI_CLIENT_ID')
+SCOPE_DESCRIPTION = os.getenv("SCOPE_DESCRIPTION")
+SCOPE_NAME = os.getenv("SCOPE_NAME")
 NOID_SERVER=os.getenv('NOID_SERVER')
 SWIFT_AUTH_URL=os.getenv('SWIFT_AUTH_URL')
 SWIFT_USERNAME=os.getenv('SWIFT_USERNAME')
@@ -22,6 +32,54 @@ SWIFT_PREAUTH_URL=os.getenv('SWIFT_PREAUTH_URL')
 COUCHDB_USER=os.getenv('COUCHDB_USER')
 COUCHDB_PASSWORD=os.getenv('COUCHDB_PASSWORD')
 COUCHDB_URL=os.getenv('COUCHDB_URL')
+
+class Settings(BaseSettings):
+    BACKEND_CORS_ORIGINS: list[str] = ['http://localhost:8000']
+    OPENAPI_CLIENT_ID: str = OPENAPI_CLIENT_ID
+    APP_CLIENT_ID: str = APP_CLIENT_ID
+    TENANT_ID: str = TENANT_ID
+    SCOPE_DESCRIPTION: str = SCOPE_DESCRIPTION
+
+    @computed_field
+    @property
+    def SCOPE_NAME(self) -> str:
+        return f'api://{self.APP_CLIENT_ID}/{self.SCOPE_DESCRIPTION}'
+
+    @computed_field
+    @property
+    def SCOPES(self) -> dict:
+        return {
+            self.SCOPE_NAME: self.SCOPE_DESCRIPTION,
+        }
+    class Config:
+        env_file = '.env'
+        env_file_encoding = 'utf-8'
+        case_sensitive = True
+
+settings = Settings()
+
+app = FastAPI( swagger_ui_oauth2_redirect_url='/oauth2-redirect',
+    swagger_ui_init_oauth={
+        'usePkceWithAuthorizationCodeGrant': True,
+        'clientId': settings.OPENAPI_CLIENT_ID,
+        'scopes': SCOPE_NAME,
+    }
+)
+
+if settings.BACKEND_CORS_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+        allow_credentials=True,
+        allow_methods=['*'],
+        allow_headers=['*'],
+    )
+
+azure_scheme = SingleTenantAzureAuthorizationCodeBearer(
+    app_client_id=settings.APP_CLIENT_ID,
+    tenant_id=settings.TENANT_ID,
+    scopes=settings.SCOPES,
+)
 
 image_api_url = 'https://image-tor.canadiana.ca'
 presentation_api_url = 'https://crkn-iiif-presentation-api.azurewebsites.net'
@@ -43,7 +101,7 @@ def mint_noid(noid_type):
 
 def convert_image(source_file, output_path):
     original = Image.open(source_file)
-    original.save(output_path, quality=95)
+    original.save(output_path, quality=80)
     output = Image.open(output_path)
     return {
         "width": output.width,
@@ -83,12 +141,11 @@ def save_canvas(noid, encoded_noid, width, height, size, md5):
         }
     })
 
-app = FastAPI()
-
-@app.post("/uploadfiles")
+@app.post("/uploadfiles", dependencies=[Security(azure_scheme)])
 async def create_files(files: Annotated[List[bytes], File()]):
     canvases = []
-    manifest_noid = mint_noid("manifest")
+    # if form ! have manifest noid min noid else use noid...
+    manifest_noid = mint_noid("manifest") 
     for file in files: 
         #request_object_content = await file.read()
         source_file = io.BytesIO(file)
@@ -142,7 +199,6 @@ async def create_files(files: Annotated[List[bytes], File()]):
             })
     return {"canvases": canvases}
 
-
 @app.get("/")
 async def main():
     content = """
@@ -154,6 +210,55 @@ async def main():
 </body>
     """
     return HTMLResponse(content=content)
+
+# Add api azure auth
+# https://intility.github.io/fastapi-azure-auth/single-tenant/fastapi_configuration/
+
+# add route for making manifest:
+'''
+from fastapi import FastAPI
+import httpx
+ 
+app = FastAPI()
+ 
+@app.get("/send-token")
+def send_token():
+    url = "https://your-backend-api.com/your-endpoint"
+    token = "your_token_here"
+ 
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+    }
+ 
+    data = {
+        "key1": "value1",
+        "key2": "value2"
+    }
+ 
+   
+    with httpx.Client() as client:
+        response = client.post(url, json=data, headers=headers)
+ 
+    return {
+        "status_code": response.status_code,
+        "response_body": response.json()
+    }
+
+
+Mary Code:
+@router.put("/admin/file",dependencies=[Depends(jwt_auth)])
+async def send_manifest(slug:str,
+                        request:Request,
+                        file:UploadFile = File(...),
+                        db:AsyncSession = Depends(async_get_db)
+                        ):
+   
+    message = await upload_manifest_backend(slug,request,file,db)  
+    return message 
+
+give mary JWT
+'''
 
 ''' Example Res:
 {
