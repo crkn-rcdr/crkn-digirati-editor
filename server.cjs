@@ -7,7 +7,7 @@ const fs = require('fs')
 const { getManifest, getManifestItems } = require("./utilities/manifestCreation.cjs")
 const writeDcCsv = require("./utilities/writeDcCsv.cjs")
 const Store = require('electron-store')
-const axios = require('axios')
+const mime = require('mime-types')
 
 //const { fork } = require('child_process')
 //const ps = fork(`${__dirname}/fileServer.cjs`)
@@ -64,45 +64,57 @@ const createWindow = () => {
 
       //canvas-C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/project/step 2/0001.jpg
       
-      // check if manifest has noid in id
       const formData  = new FormData()
+      // check if manifest has noid in id
+      const manifestIdSet = data['id'].includes('http')
+      if(manifestIdSet) {
+        const parsedUrl = new URL(data['id'])
+        const pathParts = parsedUrl.pathname.split('/').filter(Boolean)
+        //formData.append("manifest_id", `${pathParts[0]}/${pathParts[1]}`)
+      } else {
+        //formData.append("manifest_id", null)
+      }
+
       let indexesOfItemsToCreate = []
       let i = 0
       // For each canvas
       //     if not crkn url - id must include: "https://crkn-iiif-presentation-api.azurewebsites.net/canvas"
       //        form data append file blob
-      //        indexesOfItemsToCreate.append(i)
+      //        indexesOfItemsToCreate.push(i)
       //     i++
       // Case for local files:
       let canvasFile = data['items'][0]['id'].replace("canvas-", "")
       console.log(canvasFile)
-      const fileData = fs.readFileSync(canvasFile) 
-      console.log(fileData)
+      const file = fs.readFileSync(canvasFile) 
+      const type = mime.lookup(canvasFile)
+      const fileBlob = new Blob([file], { type: type })
+      const fileData = {
+        filename: path.basename(canvasFile), // Ensure the filename is set
+        contentType: 'application/octet-stream' // Optional: Set content type
+      }
+      formData.append("files", fileBlob, fileData)
   
       // case for external http files:
       // todo
 
-      const blob = new Blob([fileData])
-      formData.append("file", blob, path.basename(canvasFile) )
-
-
       // send create canvases request - add manifest noid if exists
-      console.log(formData)
-      const response = await fetch("http://127.0.0.1:8000/createCanvas", {
+      const response = await fetch("http://127.0.0.1:80/uploadfiles", {
         method: 'POST',
-        body: formData,
+        body: formData
       })
-
-      if(response.length) {
+      const canvases = await response.json()
+      console.log(JSON.stringify(canvases))
+      if(canvases.length) {
         i = 0
-        if(!data['id'].includes('http')) { // set manifest id from response if no manifest id not already created
-          const url = response[0]['items'][0]['id']
+        if(!manifestIdSet) { // set manifest id from response if no manifest id not already created
+          const url = canvases[0]['items'][0]['id']
           const urlObj = new URL(url)
           const host = urlObj.host
           const pathname = urlObj.pathname
           const index = pathname.indexOf('annotationpage')
           const modifiedPathname = pathname.slice(0, index)
           data['id'] = `${urlObj.protocol}//${host}${modifiedPathname}`
+          console.log("manifest id", data['id'] )
         }
 
         // replace items in item list...

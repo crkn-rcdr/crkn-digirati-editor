@@ -32,6 +32,7 @@
     "framer-motion": "^11.9.0",
     "image-size": "^1.1.1",
     "jsonwebtoken": "^9.0.2",
+    "mime-types": "^2.1.35",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
