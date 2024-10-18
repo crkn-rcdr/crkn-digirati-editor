@@ -61,34 +61,58 @@ const createWindow = () => {
       data['metadata'] = newMetadata
 
       // TODO: send to IIIF API - get response, add SeeAlso for marc metadata, and resend
+
       //canvas-C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/project/step 2/0001.jpg
+      
+      // check if manifest has noid in id
+      const formData  = new FormData()
+      let indexesOfItemsToCreate = []
+      let i = 0
+      // For each canvas
+      //     if not crkn url
+      //        form data append file blob
+      //        indexesOfItemsToCreate.append(i)
+      //     i++
       let canvasFile = data['items'][0]['id'].replace("canvas-", "")
       console.log(canvasFile)
       const fileData = fs.readFileSync(canvasFile)
       console.log(fileData)
       const blob = new Blob([fileData])
-      //fs.writeFileSync('test.jpg', Buffer.from( await blob.arrayBuffer() ))
-      const formData  = new FormData()
       formData.append("file", blob, path.basename(canvasFile) )
+      // send create canvases request - add manifest noid if exists
+      
       console.log(formData)
-      /*let response = await fetch('http://127.0.0.1:8000/createCanvas', {
-        method: 'POST',
-        body: formData
-      })*/
-      // Or any readable stream
       const response = await fetch("http://127.0.0.1:8000/createCanvas", {
         method: 'POST',
         body: formData,
       })
+
+      if(response.length) {
+        i = 0
+        if(!data['id'].includes('http')) { // set manifest id from response if no manifest id not already created
+          const url = response[0]['items'][0]['id']
+          const urlObj = new URL(url)
+          const host = urlObj.host
+          const pathname = urlObj.pathname
+          const index = pathname.indexOf('annotationpage')
+          const modifiedPathname = pathname.slice(0, index)
+          data['id'] = `${urlObj.protocol}//${host}${modifiedPathname}`
+        }
+
+        // replace items in item list...
+        // for canvas in response
+        //   manifest['items'][indexesOfItemsToCreate[i]] = canvas
+        //   i++
+      }
       
-      /*await axios({
-        method: "post",
-        url: ,
-        data: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-      })*/
+      // compile legacy manifest
+      // send request to upsert legacy manifest into couch
+      // note: any deleted canvases will be dangling... will want cleanup cron job
+
+      // send request to mary API for migrating manifest
+      // see: https://crkn-iiif-presentation-api.azurewebsites.net/docs#/Manifest/update_manifest_file_put
+      //      https://github.com/crkn-rcdr/crkn-IIIF-presentation-api/blob/4f8c2f599a304258d4feb197fc6432825c761559/utils/upload_manifest.py#L87
+
 
       console.log(response)
     } else {
