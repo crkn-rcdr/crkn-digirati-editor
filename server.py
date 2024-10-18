@@ -12,7 +12,6 @@ import requests
 from dotenv import load_dotenv
 import os
 import couchdb 
-import urllib.parse
 load_dotenv(".env")
 
 NOID_SERVER=os.getenv('NOID_SERVER')
@@ -52,9 +51,9 @@ def convert_image(source_file, output_path):
         "size": output.size
     }
 
-def save_image_to_swift(swift_filename, container):
+def save_image_to_swift(local_filename, swift_filename, container):
     try:
-      with open(swift_filename, 'rb') as local_file:
+      with open(local_filename, 'rb') as local_file:
         file_content = local_file.read()
         file_md5_hash = hashlib.md5(file_content).hexdigest()
         conn.put_object(container, swift_filename, contents=file_content)
@@ -91,13 +90,14 @@ async def create_files(files: Annotated[List[bytes], File()]):
     canvases = []
     manifest_noid = mint_noid("manifest")
     for file in files: 
-        request_object_content = await file.read()
-        source_file = io.BytesIO(request_object_content)
+        #request_object_content = await file.read()
+        source_file = io.BytesIO(file)
         canvas_noid = mint_noid("canvas")
-        encoded_canvas_noid = urllib.parse.quote(canvas_noid)
+        encoded_canvas_noid = canvas_noid.replace('/', '%2F')
         swift_filename = canvas_noid + ".jpg" # will handle more than 1 file
-        convert_info = convert_image(source_file, swift_filename) 
-        swift_md5 = save_image_to_swift(swift_filename, "access-files")
+        local_filename = encoded_canvas_noid + ".jpg" 
+        convert_info = convert_image(source_file, local_filename) 
+        swift_md5 = save_image_to_swift(local_filename, swift_filename, "access-files")
         if swift_md5:
             save_canvas(canvas_noid, encoded_canvas_noid, convert_info['width'], convert_info['height'], convert_info['size'], swift_md5)
             canvases.append({
@@ -154,3 +154,50 @@ async def main():
 </body>
     """
     return HTMLResponse(content=content)
+
+''' Example Res:
+{
+  "canvases": [
+    {
+      "id": "https://crkn-iiif-presentation-api.azurewebsites.net/canvas/69429/c00r9m628g2v",
+      "width": 726,
+      "height": 610,
+      "thumbnail": [
+        {
+          "id": "https://image-tor.canadiana.ca/iiif/2/69429%2Fc00r9m628g2v/full/max/0/default.jpg",
+          "type": "Image",
+          "format": "image/jpeg"
+        }
+      ],
+      "items": [
+        {
+          "id": "https://crkn-iiif-presentation-api.azurewebsites.net/69429/m09p2w37s979/annotationpage/69429/c00r9m628g2v/main",
+          "type": "AnnotationPage",
+          "items": [
+            {
+              "id": "https://crkn-iiif-presentation-api.azurewebsites.net/69429/m09p2w37s979/annotation/69429/c00r9m628g2v/main/image",
+              "body": {
+                "id": "https://image-tor.canadiana.ca/iiif/2/69429%2Fc00r9m628g2v/full/max/0/default.jpg",
+                "type": "Image",
+                "width": 726,
+                "height": 610,
+                "format": "image/jpeg",
+                "service": [
+                  {
+                    "id": "https://image-tor.canadiana.ca/iiif/2/69429%2Fc00r9m628g2v",
+                    "type": "ImageService2",
+                    "profile": "level2"
+                  }
+                ]
+              },
+              "type": "Annotation",
+              "target": "https://crkn-iiif-presentation-api.azurewebsites.net/canvas/69429/c00r9m628g2v",
+              "motivation": "painting"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+'''
