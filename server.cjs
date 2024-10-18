@@ -69,18 +69,24 @@ const createWindow = () => {
       let indexesOfItemsToCreate = []
       let i = 0
       // For each canvas
-      //     if not crkn url
+      //     if not crkn url - id must include: "https://crkn-iiif-presentation-api.azurewebsites.net/canvas"
       //        form data append file blob
       //        indexesOfItemsToCreate.append(i)
       //     i++
+      // Case for local files:
       let canvasFile = data['items'][0]['id'].replace("canvas-", "")
       console.log(canvasFile)
-      const fileData = fs.readFileSync(canvasFile)
+      const fileData = fs.readFileSync(canvasFile) 
       console.log(fileData)
+  
+      // case for external http files:
+      // todo
+
       const blob = new Blob([fileData])
       formData.append("file", blob, path.basename(canvasFile) )
+
+
       // send create canvases request - add manifest noid if exists
-      
       console.log(formData)
       const response = await fetch("http://127.0.0.1:8000/createCanvas", {
         method: 'POST',
