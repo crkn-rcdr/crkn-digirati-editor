@@ -1,3 +1,12 @@
+
+docker build . --no-cache
+docker run -d --name fast-image-upload-api -p 80:80 3313d9c50f147f3e96b2fa829816cca5b3d276761dbfd 
+
+
+
+
+
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

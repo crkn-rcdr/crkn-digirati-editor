@@ -1,13 +1,17 @@
-FROM node:19-bullseye
+FROM python:3.9
 
-WORKDIR /app
 
-COPY package.json .
+WORKDIR /code
 
-RUN npm install
 
-COPY . .
+COPY ./requirements.txt /code/requirements.txt
 
-EXPOSE 8000
 
-CMD [ "npm", "run", "dev" ]
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+
+
+COPY ./server.py /code/app/server.py
+COPY ./.env /code/app/.env
+
+
+CMD ["fastapi", "run", "app/server.py", "--port", "80"]
