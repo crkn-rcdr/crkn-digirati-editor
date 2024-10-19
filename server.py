@@ -5,7 +5,7 @@ import hashlib
 from PIL import Image
 from PIL.ExifTags import TAGS
 from typing import List
-from fastapi import File, FastAPI, Depends, HTTPException, Security, Request
+from fastapi import File, FastAPI, Depends, HTTPException, Security, Request, Header
 from fastapi.responses import HTMLResponse, RedirectResponse
 from typing_extensions import Annotated
 import requests
@@ -115,20 +115,44 @@ sso = MicrosoftSSO(
 async def get_logged_user(cookie: str = Security(APIKeyCookie(name="token"))) -> OpenID:
     """Get user's JWT stored in cookie 'token', parse it and return the user's OpenID."""
     try:
+        print("cookie", cookie)
         claims = jwt.decode(cookie, key=AAD_CLIENT_SECRET, algorithms=["HS256"])
         return OpenID(**claims["pld"])
     except Exception as error:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials") from error
 
+def verify_token(req: Request):
+        token = req.headers["Authorization"]
+        print("token", token)
+        # Here your code for verifying the token or whatever you use
+        valid = jwt.decode(token.replace("Bearer ", ""), key=AAD_CLIENT_SECRET, algorithms=["HS256"])
+        print("res", valid)
+        if not valid:
+            raise HTTPException(
+                status_code=401,
+                detail="Unauthorized"
+            )
+        return True
 
 app = FastAPI()
+
+@app.get("/bearer-protected")
+async def protected_endpoint(authorized: bool = Depends(verify_token)):
+    message = {
+      "message": f"You are not authroized!",
+    }
+    if authorized:
+      message = {
+        "message": f"You are authroized!",
+      }
+    return message
 
 @app.get("/protected")
 async def protected_endpoint(user: OpenID = Depends(get_logged_user)):
     """This endpoint will say hello to the logged user.
     If the user is not logged, it will return a 401 error from `get_logged_user`."""
     return {
-        "message": f"You are very welcome, {user.email}!",
+      "message": f"You are very welcome, {user.email}!",
     }
 
 
