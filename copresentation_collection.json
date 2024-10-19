@@ -1,0 +1,43 @@
+{
+    "_id": "govpubs",
+    "_rev": "74-f79e231fd3bdffb1184cee112d09a740",
+    "items": {
+      "oocihm.9_04413": {
+        "label": "Index to the statutes of Prince Edward Island in force in the year 1845 :",
+        "pubmin": "1845-01-01T00:00:00.000Z"
+      },
+      "oocihm.9_01962": {
+        "pubmin": "1873-01-01T00:00:00.000Z",
+        "label": "Regulations relating to quarantine to be made by vessels arriving in the Dominion of Canada."
+      },
+      "oocihm.9_05387": {
+        "pubmin": "1852-01-01T00:00:00.000Z",
+        "label": "Bill :"
+      }
+    },
+    "key": "govpubs",
+    "noid": "69429/s0rn3028qq58",
+    "type": "series",
+    "collection_tree": [
+      {
+        "label": {
+          "none": "Title/Label for online"
+        },
+        "collections": [],
+        "behavior": "unordered",
+        "noid": "69429/s0j678s4kv36",
+        "slug": "online"
+      }
+    ],
+    "updated": "2024-08-28T18:39:04Z",
+    "collection": [
+      "online"
+    ],
+    "identifier": [
+      "govpubs"
+    ],
+    "ti": [
+      "Title/Label for govpubs"
+    ],
+    "label": "Title/Label for govpubs"
+  }

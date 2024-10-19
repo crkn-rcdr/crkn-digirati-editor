@@ -1,0 +1,150 @@
+{
+    "_id": "aeu.00001",
+    "_rev": "3-c0fb4fbfa74d74ad10de96f98349908c",
+    "pu": [
+      "Shannon, Ireland : Irish University Press, [1968?]"
+    ],
+    "no_source": [
+      "Electronic resource:"
+    ],
+    "identifier": [
+      "aeu.00001",
+      "00001"
+    ],
+    "updated": "2024-05-13T16:43:38Z",
+    "no": [
+      "Copyright Undetermined (https://rightsstatements.org/page/UND/1.0/?language=en)",
+      "Title on page [i] of the preliminary pages: British parliamentary papers : civil government of Canada and grievances of Lower Canada (1828 (569) Vol VI) (1834 (449) Vol XVIII) (1837 (96) Vol VII)",
+      "\"Chief Editorial Advisors Professor P Ford, Professor Emeritus, Shouthampton Universy and Mrs. G Ford.\"--page [ii] of the preliminary pages.",
+      "A list of consultant editors appears on page [ii] of the preliminary pages.",
+      "\"This Series is published with the active co-operation of Southampton University.\"--page [ii] of the preliminary pages.",
+      "Original issued in series: IUP library of fundamental source books. Colonies, Canada ; 1.",
+      "Includes appendices.",
+      "Scanned from the original publication held by University of Alberta, Rutherford Library, Edmonton.",
+      "1 online resource (various pagings)"
+    ],
+    "lang": [
+      "eng"
+    ],
+    "noid": "69429/m01z41r6tb00",
+    "ti": [
+      "Reports from select committees on the civil government of Canada and on the affairs of Lower Canada, with minutes of evidence",
+      "British parliamentary papers",
+      "British parliamentary papers : civil government of Canada and grievances of Lower Canada (1828 (569) Vol VI) (1834 (449) Vol XVIII) (1837 (96) Vol VII)",
+      "IUP library of fundamental source books. Colonies, Canada ; 1",
+      "Irish University Press series of British parliamentary papers : reports from select committees on the civil government of Canada and on the affairs of Lower Canada, with minutes of evidence"
+    ],
+    "components": {
+      "aeu.00001.327": {
+        "canonicalMasterWidth": 2285,
+        "canonicalDownloadExtension": "pdf",
+        "canonicalMasterHeight": 3952,
+        "noid": "69429/c0rb6w09rc1d",
+        "label": "Image 327",
+        "canonicalMasterExtension": "jpg"
+      },
+      "aeu.00001.77": {
+        "canonicalMasterExtension": "jpg",
+        "label": "Image 77",
+        "canonicalMasterHeight": 3949,
+        "noid": "69429/c0222r791768",
+        "canonicalDownloadExtension": "pdf",
+        "canonicalMasterWidth": 2338
+      },
+      "aeu.00001.262": {
+        "canonicalMasterWidth": 2239,
+        "canonicalDownloadExtension": "pdf",
+        "canonicalMasterHeight": 3920,
+        "label": "Image 262",
+        "noid": "69429/c04x54j15n5g",
+        "canonicalMasterExtension": "jpg"
+      }
+    },
+    "order": [
+      "aeu.00001.1",
+      "aeu.00001.2",
+      "aeu.00001.23",
+      "aeu.00001.24",
+      "aeu.00001.25",
+      "aeu.00001.26",
+      "aeu.00001.27",
+      "aeu.00001.28",
+      "aeu.00001.29",
+      "aeu.00001.30",
+      "aeu.00001.31",
+      "aeu.00001.32",
+      "aeu.00001.33",
+      "aeu.00001.34",
+      "aeu.00001.35",
+      "aeu.00001.36",
+      "aeu.00001.37",
+      "aeu.00001.38",
+      "aeu.00001.39",
+      "aeu.00001.40",
+      "aeu.00001.41",
+      "aeu.00001.42",
+      "aeu.00001.43",
+      "aeu.00001.44",
+      "aeu.00001.45",
+      "aeu.00001.46",
+      "aeu.00001.47",
+      "aeu.00001.48",
+      "aeu.00001.49",
+      "aeu.00001.50",
+      "aeu.00001.51",
+      "aeu.00001.78",
+      "aeu.00001.79",
+      "aeu.00001.80",
+      "aeu.00001.81",
+      "aeu.00001.82",
+      "aeu.00001.83",
+      "aeu.00001.84",
+      "aeu.00001.575"
+    ],
+    "collection_tree": [
+      {
+        "slug": "govpubs",
+        "label": {
+          "none": "Title/Label for govpubs"
+        },
+        "noid": "69429/s0rn3028qq58",
+        "collections": [
+          {
+            "behavior": "unordered",
+            "collections": [],
+            "noid": "69429/s0j678s4kv36",
+            "label": {
+              "none": "Title/Label for online"
+            },
+            "slug": "online"
+          }
+        ],
+        "behavior": "unordered"
+      }
+    ],
+    "type": "document",
+    "collection": [
+      "govpubs",
+      "online"
+    ],
+    "label": "Irish University Press series of British parliamentary papers :",
+    "au": [
+      "Ford, P. (Percy), 1894-1983, editor",
+      "Ford, Grace, editor",
+      "Great Britain. Parliament House of Commons"
+    ],
+    "key": "aeu.00001",
+    "component_count_fulltext": 574,
+    "ocrPdf": {
+      "md5": "6ef9d3c5ac8bec3642f42ccff5e6a166",
+      "size": 601076101,
+      "extension": "pdf",
+      "mime": "application/pdf"
+    },
+    "su": [
+      "Canada -- History -- 19th century -- Sources",
+      "Canada -- History -- 1791-1841 -- Sources",
+      "Canada -- Histoire -- 19e siècle -- Sources",
+      "Canada -- Histoire -- 1791-1841 -- Sources"
+    ]
+  }

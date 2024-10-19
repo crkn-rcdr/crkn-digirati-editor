@@ -1,0 +1,32 @@
+{
+    "_id": "aeu.00001.1",
+    "_rev": "3-2d44a05707aea23df06bc30c31ad0a33",
+    "noid": "69429/c0vt1gm8wp0b",
+    "lang": [
+      "eng"
+    ],
+    "canonicalDownloadExtension": "pdf",
+    "manifest_noid": "69429/m01z41r6tb00",
+    "type": "page",
+    "pkey": "aeu.00001",
+    "key": "aeu.00001.1",
+    "label": "Image 1",
+    "collection": [
+      "govpubs",
+      "online"
+    ],
+    "ocrPdf": {
+      "md5": "54db2cd73a9d1775f56b4d7c737cb7cd",
+      "size": 1593422,
+      "extension": "pdf"
+    },
+    "identifier": [
+      "00001.1"
+    ],
+    "canonicalMasterWidth": 2341,
+    "canonicalMasterSize": 1961930,
+    "canonicalMasterMime": "image/jpeg",
+    "seq": 1,
+    "canonicalMasterExtension": "jpg",
+    "canonicalMasterHeight": 3942
+  }

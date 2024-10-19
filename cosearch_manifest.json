@@ -1,0 +1,72 @@
+{
+  "_id": "aeu.00003",
+  "_rev": "3-9cdfb9feba5c0a40b087d792849a0796",
+  "collection": [
+    "govpubs",
+    "online"
+  ],
+  "au": [
+    "Ford, P. (Percy), 1894-1983, editor",
+    "Ford, Grace, editor",
+    "Great Britain. Parliament House of Commons"
+  ],
+  "key": "aeu.00003",
+  "label": "Irish University Press series of British parliamentary papers :",
+  "component_count_fulltext": 583,
+  "pubmax": "1969-12-31T23:59:59.999Z",
+  "su": [
+    "Hudson's Bay Company",
+    "Compagnie de la Baie d'Hudson",
+    "Canada -- History -- 19th century -- Sources",
+    "Canada -- History -- 1841-1867 -- Sources",
+    "Canada -- Histoire -- 19e siècle -- Sources",
+    "Canada -- Histoire -- 1841-1867 -- Sources"
+  ],
+  "lang": [
+    "eng"
+  ],
+  "ti": [
+    "Report from the select committee on the state of the British Possessions in North America which are under the administration of the Hudson's Bay Company",
+    "British parliamentary papers",
+    "British parliamentary papers : British North America (1857 (280 Sess II) Vol XV)",
+    "IUP library of fundamental source books. Colonies, Canada ; 3",
+    "Irish University Press series of British parliamentary papers : report from the select committee on the state of the British Possessions in North America which are under the administration of the Hudson's Bay Company : with minutes of evidence, appendix and index"
+  ],
+  "noid": "69429/m0xd0qr4v97d",
+  "type": "document",
+  "no": [
+    "Copyright Undetermined (https://rightsstatements.org/page/UND/1.0/?language=en)",
+    "Title on page [i] of the preliminary pages: British parliamentary papers : British North America (1857 (280 Sess II) Vol XV)",
+    "\"Chief Editorial Advisors Professor P Ford, Professor Emeritus, Shouthampton Universy and Mrs. G Ford.\"--page [ii] of the preliminary pages.",
+    "A list of consultant editors appears on page [ii] of the preliminary pages.",
+    "\"This Series is published with the active co-operation of Southampton University.\"--page [ii] of the preliminary pages.",
+    "\"Publisher's Note: The Irish University Press Series of British Parliamentary Papers is a facsimile reproduction. The original documents in this volume have been reproduced by photo-lithography and are unabridged even to the extent of faithfully retaining the printer's imprint ... some volumes ... may include the imprints of more than one printer.\"--page [iv] of the preliminary pages.",
+    "Tables.",
+    "Original issued in series: IUP library of fundamental source books. Colonies, Canada ; 3.",
+    "Includes appendix.",
+    "Includes index.",
+    "Scanned from the original publication held by University of Alberta, Rutherford Library, Edmonton.",
+    "1 online resource (xviii, 547 pages, 5 unnumbered leaves) : maps"
+  ],
+  "depositor": "aeu",
+  "component_count": 583,
+  "pu": [
+    "Shannon, Ireland : Irish University Press, [1969?]"
+  ],
+  "tx": [
+    "UNIVERSITY OF ALBERTA s KEN FROM THIS ROOM 0 1620 00890 671",
+    "2s Ê II II Ex LIBRIS UNIVERSITATIS ALBERTÆNSIS",
+    "UNIVERSITY OF ALBERTA OCT 9 1975 es 5 S 0 GC ER ■ v PUBLIA: lot",
+    "Colonies Canada 3 British Parliamentary Papers BRITISH POSSESSIONS IN NORTH AMERICA [ 1857 (280 Sess II) VOL XV ]",
+    "IUP LIBRARY OF FUNDAMENTAL SOURCE BOOKS The IUP Series of British Parliamentary Papers RESEARCH UNIT DIRECTOR T F Turley EDITORIAL DIRECTOR T P O’Neill This Series is published with the active co-operation of SOUTHAMPTON UNIVERSITY CHIEF EDITORIAL ADVISORS Professor P Ford, Professor Emeritus, Southampton University and Mrs G Ford CONSULTANT EDITORS Professor J H Smith, Dean of the Faculty of Social Sciences, Southampton University Professor Oliver MacDonagh, University College, Cork Christopher Totvnley, Librarian, University College, Galway Colman Lyne, National Museum of Canada Dan O’Keefe, Librarian, University College, Cork",
+    "OF British Parliamentary Papers Colonies Canada REPORT FROM THE SELECT COMMITTEE ON THE STATE OF THE BRITISH POSSESSIONS IN NORTH AMERICA WHICH ARE UNDER THE ADMINISTRATION OF THE HUDSON’S BAY COMPANY WITH MINUTES OF EVIDENCE APPENDIX AND INDEX SHANNON * IRELAND IRISH UNIVERSITY PRESS SERIES JNERS/). cs — Am =% - c —/ Co"
+  ],
+  "pubmin": "1969-01-01T00:00:00.000Z",
+  "identifier": [
+    "aeu.00003",
+    "00003"
+  ],
+  "no_source": [
+    "Electronic resource:"
+  ]
+}

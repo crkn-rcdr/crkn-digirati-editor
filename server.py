@@ -246,64 +246,7 @@ async def create_files(files: Annotated[List[bytes], File()], user: OpenID = Dep
                 ]
             })
     return {"canvases": canvases}
-
-@app.get("/")
-async def main(cookie: str = Security(APIKeyCookie(name="token"))):
-  return {
-    "token": cookie,
-  }
-      
-
-# To send request to mary API:
-# https://intility.github.io/fastapi-azure-auth/usage-and-faq/calling_your_apis_from_python
-
-# add route for making manifest:
-'''
-from fastapi import FastAPI
-import httpx
- 
-app = FastAPI()
- 
-@app.get("/send-token")
-def send_token():
-    url = "https://your-backend-api.com/your-endpoint"
-    token = "your_token_here"
- 
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
-    }
- 
-    data = {
-        "key1": "value1",
-        "key2": "value2"
-    }
- 
-   
-    with httpx.Client() as client:
-        response = client.post(url, json=data, headers=headers)
- 
-    return {
-        "status_code": response.status_code,
-        "response_body": response.json()
-    }
-
-
-Mary Code:
-@router.put("/admin/file",dependencies=[Depends(jwt_auth)])
-async def send_manifest(slug:str,
-                        request:Request,
-                        file:UploadFile = File(...),
-                        db:AsyncSession = Depends(async_get_db)
-                        ):
-   
-    message = await upload_manifest_backend(slug,request,file,db)  
-    return message 
-
-give mary JWT
-'''
-
-''' Example Res:
+''' Example Canvas Create Res:
 {
   "canvases": [
     {
@@ -348,6 +291,38 @@ give mary JWT
     }
   ]
 }
+'''
 
-https://image-tor.canadiana.ca/iiif/2/69429%2Fc0w08wd4n50g/full/max/0/default.jpg
+
+@app.get("/")
+async def main(cookie: str = Security(APIKeyCookie(name="token"))):
+  return {
+    "token": cookie,
+  }
+
+'''
+TODOS:
+- CREATE ROUTE TO SERVE (non-image) files from Swift
+
+- Attach OCR Alto to Canvases
+  Mirador text overlay: 
+  A per-canvas seeAlso entry pointing to the ALTO or hOCR OCR markup for the page with either:
+    A format that is application/xml+alto or text/vnd.hocr+html
+    A profile starting with http://www.loc.gov/standards/alto/, http://kba.cloud/hocr-spec, http://kba.github.io/hocr-spec/ or https://github.com/kba/hocr-spec/blob/master/hocr-spec.md
+
+- Attach OCR PDF to Canvases
+
+- Route to save manifest to Mary API # https://intility.github.io/fastapi-azure-auth/usage-and-faq/calling_your_apis_from_python
+- Attach MARC as SeeAlso to manifest: // https://crkn-blacklight-beta.azurewebsites.net/catalog/<slug>/librarian_view
+- Attach OCR PDF SeeAlso to manifest
+
+OCR PDF changes:
+Send urls to Mary API instead of couch
+
+Hammer changes:
+Use Mary API for Canvas and Manifest level data
+
+After migration scripts complete: 
+couchdb only used for adding manifests to collections for CAP
+Once blacklight introduced, above step is removed from process!
 '''

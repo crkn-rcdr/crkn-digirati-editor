@@ -1,0 +1,19 @@
+{
+    "_id": "govpubs",
+    "_rev": "74-bd6300b430e1057a3875dfd51555bf0e",
+    "noid": "69429/s0rn3028qq58",
+    "key": "govpubs",
+    "item_count": 8265,
+    "type": "series",
+    "depositor": "govpubs",
+    "ti": [
+      "Title/Label for govpubs"
+    ],
+    "identifier": [
+      "govpubs"
+    ],
+    "label": "Title/Label for govpubs",
+    "collection": [
+      "online"
+    ]
+}
