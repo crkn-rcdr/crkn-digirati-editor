@@ -5,7 +5,7 @@ import hashlib
 from PIL import Image
 from PIL.ExifTags import TAGS
 from typing import List
-from fastapi import FastAPI, File, Security
+from fastapi import FastAPI, File, Security, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_azure_auth import SingleTenantAzureAuthorizationCodeBearer
@@ -17,6 +17,11 @@ import os
 import couchdb 
 from pydantic import AnyHttpUrl
 from pydantic_settings import BaseSettings
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator
+from fastapi_azure_auth.user import User
+
+
 
 load_dotenv(".env")
 APP_CLIENT_ID=os.getenv('APP_CLIENT_ID')
@@ -141,7 +146,15 @@ def save_canvas(noid, encoded_noid, width, height, size, md5):
         }
     })
 
-@app.post("/uploadfiles", dependencies=[Security(azure_scheme)])
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    """
+    Load OpenID config on startup.
+    """
+    await azure_scheme.openid_config.load_config()
+    yield
+
+@app.post("/uploadfiles") #, dependencies=[Security(azure_scheme)]
 async def create_files(files: Annotated[List[bytes], File()]):
     canvases = []
     # if form ! have manifest noid min noid else use noid...
@@ -199,7 +212,18 @@ async def create_files(files: Annotated[List[bytes], File()]):
             })
     return {"canvases": canvases}
 
-@app.get("/")
+@router.get(
+    '/hello-user',
+    response_model=User,
+    operation_id='helloWorldApiKey',
+)
+async def hello_user(user: User = Depends(azure_scheme)) -> dict[str, bool]:
+    """
+    Wonder how this auth is done?
+    """
+    return user.dict()
+
+@app.get("/", dependencies=[Security(azure_scheme)])
 async def main():
     content = """
 <body>
