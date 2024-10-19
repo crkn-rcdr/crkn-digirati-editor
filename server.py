@@ -302,7 +302,10 @@ async def main(cookie: str = Security(APIKeyCookie(name="token"))):
 
 '''
 TODOS:
-- CREATE ROUTE TO SERVE (non-image) files from Swift
+- Update this site on Azure (python now - will need to make a new app: crkn-access-api)
+- Edit the front end app to use this site for auth instead of access.canadiana.ca
+
+- CREATE ROUTE TO SERVE (non-image) files from Swift: access-files [pdf] and access-metadata [alto]
 
 - Attach OCR Alto to Canvases
   Mirador text overlay: 
@@ -312,17 +315,24 @@ TODOS:
 
 - Attach OCR PDF to Canvases
 
-- Route to save manifest to Mary API # https://intility.github.io/fastapi-azure-auth/usage-and-faq/calling_your_apis_from_python
-- Attach MARC as SeeAlso to manifest: // https://crkn-blacklight-beta.azurewebsites.net/catalog/<slug>/librarian_view
-- Attach OCR PDF SeeAlso to manifest
+- Route to save manifest to Mary API 
+  https://intility.github.io/fastapi-azure-auth/usage-and-faq/calling_your_apis_from_python
+  Attach MARC as SeeAlso to manifest: // https://crkn-blacklight-beta.azurewebsites.net/catalog/<slug>/librarian_view
+  Attach OCR PDF SeeAlso to manifest
+  call this route from the front end app
 
-OCR PDF changes:
-Send urls to Mary API instead of couch
+- OCR PDF changes:
+  Send urls to Mary API instead of couch
 
-Hammer changes:
-Use Mary API for Canvas and Manifest level data
+- Hammer changes:
+  Use Mary API for Canvas and Manifest level data
 
-After migration scripts complete: 
-couchdb only used for adding manifests to collections for CAP
-Once blacklight introduced, above step is removed from process!
+- After migration to IIIF scripts complete:
+  1. No need to use the access.canadiana.ca metadata tab - just index using blacklight (hammer [the script used to add data to CAP] will get the metadata from this)
+  2. Once Hugo replaces WIP and releases his new OCR scripting, no need to use access.canadiana.ca OCR tab
+  3. Once the Digirati editor is being used, no need to use access.canadiana.ca import tab
+  4. At this point, Couchdb and access.canadiana.ca are only used for adding manifests to collections for CAP, and to feed into CAP's solr - Once blacklight used for canadiana, this step is removed from process and there is no need to use Access Platform at all.
+ 
+Therefore these efforts will remove most of Access Platform in the near term (https://github.com/crkn-rcdr/Access-Platform and https://access.canadiana.ca/) Longer term - once we move to blacklight for prod the collection management step will also be removed, and the whole repo goes in the trash
+  
 '''
