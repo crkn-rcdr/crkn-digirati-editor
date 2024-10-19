@@ -5,30 +5,32 @@ import hashlib
 from PIL import Image
 from PIL.ExifTags import TAGS
 from typing import List
-from fastapi import FastAPI, File, Security, Depends
-from fastapi.responses import HTMLResponse
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi_azure_auth import SingleTenantAzureAuthorizationCodeBearer
-from pydantic import AnyHttpUrl, computed_field
+from fastapi import File, FastAPI, Depends, HTTPException, Security, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
 from typing_extensions import Annotated
 import requests
 from dotenv import load_dotenv
 import os
 import couchdb 
-from pydantic import AnyHttpUrl
-from pydantic_settings import BaseSettings
-from contextlib import asynccontextmanager
-from typing import AsyncGenerator
-from fastapi_azure_auth.user import User
+#from requests import request
+import datetime  # to calculate expiration of the JWT
+from fastapi_sso.sso.microsoft import MicrosoftSSO
+from fastapi.security import APIKeyCookie  # this is the part that puts the lock icon to the 
+from fastapi_sso.sso.base import OpenID
+from jose import jwt  # pip install python-jose[cryptography]
 
-
+# https://stackoverflow.com/questions/45244998/azure-ad-authentication-python-web-api
 
 load_dotenv(".env")
-APP_CLIENT_ID=os.getenv('APP_CLIENT_ID')
-TENANT_ID=os.getenv('TENANT_ID')
-OPENAPI_CLIENT_ID=os.getenv('OPENAPI_CLIENT_ID')
-SCOPE_DESCRIPTION = os.getenv("SCOPE_DESCRIPTION")
-SCOPE_NAME = os.getenv("SCOPE_NAME")
+AAD_CLIENT_SECRET=os.getenv('AAD_CLIENT_SECRET')
+AAD_CLIENT_ID=os.getenv('AAD_CLIENT_ID')
+AAD_TENANT_ID=os.getenv('AAD_TENANT_ID')
+AAD_SCOPE_DESCRIPTION=os.getenv('AAD_SCOPE_DESCRIPTION')
+AAD_SCOPE_NAME=os.getenv('AAD_SCOPE_NAME')
+AAD_TENANT_NAME=os.getenv('AAD_TENANT_NAME')
+AAD_AUTH_URL=os.getenv('AAD_AUTH_URL')
+AAD_TOKEN_URL=os.getenv('AAD_TOKEN_URL')
+
 NOID_SERVER=os.getenv('NOID_SERVER')
 SWIFT_AUTH_URL=os.getenv('SWIFT_AUTH_URL')
 SWIFT_USERNAME=os.getenv('SWIFT_USERNAME')
@@ -38,64 +40,18 @@ COUCHDB_USER=os.getenv('COUCHDB_USER')
 COUCHDB_PASSWORD=os.getenv('COUCHDB_PASSWORD')
 COUCHDB_URL=os.getenv('COUCHDB_URL')
 
-class Settings(BaseSettings):
-    BACKEND_CORS_ORIGINS: list[str] = ['http://localhost:8000']
-    OPENAPI_CLIENT_ID: str = OPENAPI_CLIENT_ID
-    APP_CLIENT_ID: str = APP_CLIENT_ID
-    TENANT_ID: str = TENANT_ID
-    SCOPE_DESCRIPTION: str = SCOPE_DESCRIPTION
-
-    @computed_field
-    @property
-    def SCOPE_NAME(self) -> str:
-        return f'api://{self.APP_CLIENT_ID}/{self.SCOPE_DESCRIPTION}'
-
-    @computed_field
-    @property
-    def SCOPES(self) -> dict:
-        return {
-            self.SCOPE_NAME: self.SCOPE_DESCRIPTION,
-        }
-    class Config:
-        env_file = '.env'
-        env_file_encoding = 'utf-8'
-        case_sensitive = True
-
-settings = Settings()
-
-app = FastAPI( swagger_ui_oauth2_redirect_url='/oauth2-redirect',
-    swagger_ui_init_oauth={
-        'usePkceWithAuthorizationCodeGrant': True,
-        'clientId': settings.OPENAPI_CLIENT_ID,
-        'scopes': SCOPE_NAME,
-    }
-)
-
-if settings.BACKEND_CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
-        allow_credentials=True,
-        allow_methods=['*'],
-        allow_headers=['*'],
-    )
-
-azure_scheme = SingleTenantAzureAuthorizationCodeBearer(
-    app_client_id=settings.APP_CLIENT_ID,
-    tenant_id=settings.TENANT_ID,
-    scopes=settings.SCOPES,
-)
-
 image_api_url = 'https://image-tor.canadiana.ca'
 presentation_api_url = 'https://crkn-iiif-presentation-api.azurewebsites.net'
+
 conn = swiftclient.Connection(authurl=SWIFT_AUTH_URL,
                               user=SWIFT_USERNAME,
                               key=SWIFT_PASSWORD,
                               preauthurl=SWIFT_PREAUTH_URL)
 
-couch = couchdb.Server('http://'+COUCHDB_USER+':'+COUCHDB_PASSWORD+'@'+COUCHDB_URL+'/')
+# TODO - couch openvpn makes request too slow
+#couch = couchdb.Server('http://'+COUCHDB_USER+':'+COUCHDB_PASSWORD+'@'+COUCHDB_URL+'/')
 #db_access = couch['access']
-db_canvas = couch['canvas']
+#db_canvas = couch['canvas']
 
 def mint_noid(noid_type):
     url = NOID_SERVER + '/mint/1/' + noid_type
@@ -127,7 +83,8 @@ def save_image_to_swift(local_filename, swift_filename, container):
        return file_md5_hash
     except:
         return None
-    
+
+'''
 def save_canvas(noid, encoded_noid, width, height, size, md5):
     #canvas = db_canvas.get(canvas['id'])
     db_canvas.save({
@@ -145,17 +102,71 @@ def save_canvas(noid, encoded_noid, width, height, size, md5):
           "url": image_api_url+'/iiif/2/'+encoded_noid+'/info.json'
         }
     })
+''' 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """
-    Load OpenID config on startup.
-    """
-    await azure_scheme.openid_config.load_config()
-    yield
+sso = MicrosoftSSO(
+    client_id=AAD_CLIENT_ID,
+    client_secret=AAD_CLIENT_SECRET,
+    tenant=AAD_TENANT_ID,
+    redirect_uri="http://localhost:8000/auth/callback",
+    allow_insecure_http=True,
+)
 
-@app.post("/uploadfiles") #, dependencies=[Security(azure_scheme)]
-async def create_files(files: Annotated[List[bytes], File()]):
+async def get_logged_user(cookie: str = Security(APIKeyCookie(name="token"))) -> OpenID:
+    """Get user's JWT stored in cookie 'token', parse it and return the user's OpenID."""
+    try:
+        claims = jwt.decode(cookie, key=AAD_CLIENT_SECRET, algorithms=["HS256"])
+        return OpenID(**claims["pld"])
+    except Exception as error:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials") from error
+
+
+app = FastAPI()
+
+@app.get("/protected")
+async def protected_endpoint(user: OpenID = Depends(get_logged_user)):
+    """This endpoint will say hello to the logged user.
+    If the user is not logged, it will return a 401 error from `get_logged_user`."""
+    return {
+        "message": f"You are very welcome, {user.email}!",
+    }
+
+
+@app.get("/auth/login")
+async def login():
+    """Redirect the user to the Google login page."""
+    with sso:
+        return await sso.get_login_redirect()
+
+
+@app.get("/auth/logout")
+async def logout():
+    """Forget the user's session."""
+    response = RedirectResponse(url="/")
+    response.delete_cookie(key="token")
+    return response
+
+
+@app.get("/auth/callback")
+async def login_callback(request: Request):
+    """Process login and redirect the user to the protected endpoint."""
+    request.timeout = 100000000000000
+    with sso:
+        openid = await sso.verify_and_process(request)
+        if not openid:
+            raise HTTPException(status_code=401, detail="Authentication failed")
+    # Create a JWT with the user's OpenID
+    expiration = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(days=1)
+    token = jwt.encode({"pld": openid.dict(), "exp": expiration, "sub": openid.id}, key=AAD_CLIENT_SECRET, algorithm="HS256")
+    response = RedirectResponse(url="/")
+    response.set_cookie(
+        key="token", value=token, expires=expiration
+    )  # This cookie will make sure /protected knows the user
+    return response
+
+
+@app.post("/uploadfiles")
+async def create_files(files: Annotated[List[bytes], File()], user: OpenID = Depends(get_logged_user)):
     canvases = []
     # if form ! have manifest noid min noid else use noid...
     manifest_noid = mint_noid("manifest") 
@@ -169,7 +180,7 @@ async def create_files(files: Annotated[List[bytes], File()]):
         convert_info = convert_image(source_file, local_filename) 
         swift_md5 = save_image_to_swift(local_filename, swift_filename, "access-files")
         if swift_md5:
-            save_canvas(canvas_noid, encoded_canvas_noid, convert_info['width'], convert_info['height'], convert_info['size'], swift_md5)
+            # save_canvas(canvas_noid, encoded_canvas_noid, convert_info['width'], convert_info['height'], convert_info['size'], swift_md5)
             canvases.append({
                 "id": presentation_api_url + '/canvas/' + canvas_noid,
                 "width": convert_info['width'],
@@ -212,31 +223,15 @@ async def create_files(files: Annotated[List[bytes], File()]):
             })
     return {"canvases": canvases}
 
-@router.get(
-    '/hello-user',
-    response_model=User,
-    operation_id='helloWorldApiKey',
-)
-async def hello_user(user: User = Depends(azure_scheme)) -> dict[str, bool]:
-    """
-    Wonder how this auth is done?
-    """
-    return user.dict()
+@app.get("/")
+async def main(cookie: str = Security(APIKeyCookie(name="token"))):
+  return {
+    "token": cookie,
+  }
+      
 
-@app.get("/", dependencies=[Security(azure_scheme)])
-async def main():
-    content = """
-<body>
-<form action="/uploadfiles/" enctype="multipart/form-data" method="post">
-<input name="files" type="file" multiple>
-<input type="submit">
-</form>
-</body>
-    """
-    return HTMLResponse(content=content)
-
-# Add api azure auth
-# https://intility.github.io/fastapi-azure-auth/single-tenant/fastapi_configuration/
+# To send request to mary API:
+# https://intility.github.io/fastapi-azure-auth/usage-and-faq/calling_your_apis_from_python
 
 # add route for making manifest:
 '''
