@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, session } = require('electron')
 const path = require('path')
 const getFolderContentsArray = require('./utilities/getFolderContentsArray.cjs')
 const legacyIngestTrigger = require('./utilities/legacyIngestTrigger.cjs')
@@ -60,9 +60,6 @@ const createWindow = () => {
       }
       data['metadata'] = newMetadata
 
-      // TODO: send to IIIF API - get response, add SeeAlso for marc metadata, and resend
-
-      //canvas-C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/project/step 2/0001.jpg
       
       const formData  = new FormData()
       // check if manifest has noid in id
@@ -123,15 +120,8 @@ const createWindow = () => {
         //   i++
       }
       
-      // compile legacy manifest
-      // send request to upsert legacy manifest into couch
-      // note: any deleted canvases will be dangling... will want cleanup cron job
-
-      // send request to mary API for migrating manifest
-      // see: https://crkn-iiif-presentation-api.azurewebsites.net/docs#/Manifest/update_manifest_file_put
-      //      https://github.com/crkn-rcdr/crkn-IIIF-presentation-api/blob/4f8c2f599a304258d4feb197fc6432825c761559/utils/upload_manifest.py#L87
-
-
+      // through backend, send request to mary API for create manifest
+      
       console.log(response)
     } else {
       // display error popup
@@ -193,42 +183,39 @@ const createWindow = () => {
 }
 
 app.whenReady().then(() => {
-    // Use the access platform app for auth
-    const store = new Store()
-    let AUTH_TOKEN = store.get('AUTH_TOKEN')
-    console.log("stored AUTH_TOKEN", AUTH_TOKEN)
-    if(typeof AUTH_TOKEN === "undefined") {
-      var authWindow = new BrowserWindow({
-        width: 800, 
-        height: 600, 
-        show: false, 
-        'node-integration': false,
-        'web-security': false
-      })
-      var authUrl = 'https://access.canadiana.ca'
-      authWindow.loadURL(authUrl);
-      authWindow.show()
-      authWindow.webContents.on('did-navigate-in-page', (cookie) => {
-        const ses = authWindow.webContents.session
-        ses.cookies.get({name:"auth_token"})
+  // Calls the back end to authenticate
+  const store = new Store()
+  let AUTH_TOKEN = store.get('AUTH_TOKEN')
+  // TODO - get expiry time and check
+  console.log("stored AUTH_TOKEN", AUTH_TOKEN)
+  if(typeof AUTH_TOKEN === "undefined") {
+    const authWindow = new BrowserWindow({
+      webPreferences: {
+          nodeIntegration: false,
+      }
+    })
+    const url = new URL("http://localhost:8000/auth/login")
+    authWindow.loadURL(url.toString())
+    authWindow.webContents.on(
+      'did-redirect-navigation',
+      function() {
+        console.log("calling")
+        session.defaultSession.cookies.get({ name : 'token'})
           .then((cookies) => {
-            if(cookies.length) {
-              AUTH_TOKEN = cookies[0].value
-              store.set('AUTH_TOKEN', AUTH_TOKEN)
-            }
-            console.log("AUTH_TOKEN", AUTH_TOKEN)
-            // TODO: close window
+            console.log(cookies[0].value)
+            store.set('AUTH_TOKEN', cookies[0].value)
+            //store.set('AUTH_TOKEN_EXPIRE', timestamp)
+            authWindow.close()
           }).catch((error) => {
-              console.log(error)
+            console.log(error)
           })
-      })
-      authWindow.on('closed', function() {
-        authWindow = null
-        createWindow()
-      })
-    } else {
+    })
+    authWindow.on('closed', function() {
       createWindow()
-    }
+    })
+  } else {
+    createWindow()
+  }
 })
 
 app.on('window-all-closed', () => {
