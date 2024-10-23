@@ -50,6 +50,7 @@ COUCHDB_URL=os.getenv('COUCHDB_URL')
 
 image_api_url = 'https://image-tor.canadiana.ca'
 presentation_api_url = 'https://crkn-iiif-presentation-api.azurewebsites.net'
+crkn_digirati_editor_api_url = 'https://crkn-editor.azurewebsites.net'
 
 conn = swiftclient.Connection(authurl=SWIFT_AUTH_URL,
                               user=SWIFT_USERNAME,
@@ -286,7 +287,25 @@ async def create_files(files: Annotated[List[bytes], File()], authorized: bool =
                     }
                 ],
                 "seeAlso" : [
-                   
+                  {
+                    "id": crkn_digirati_editor_api_url + "/ocr/" + canvas_noid,
+                    "type": "Dataset",
+                    "label": { "en": [ "Optical Character Recognition text in XML" ] },
+                    "format": "text/xml",
+                    "profile": "http://www.loc.gov/standards/alto"
+                  }
+                ],
+                "rendering": [
+                  {
+                    "id": crkn_digirati_editor_api_url + "/pdf/" + canvas_noid,
+                    "type": "Text",
+                    "label": {
+                      "en": [
+                        "PDF version"
+                      ]
+                    },
+                    "format": "application/pdf"
+                  }
                 ]
             })
     return {"canvases": canvases}
@@ -349,8 +368,7 @@ async def protected_endpoint(authorized: bool = Depends(verify_token)):
         "message": f"You are authroized!",
       }
     return message
-'''
-'''
+
 @app.get("/protected")
 async def protected_endpoint(user: OpenID = Depends(get_logged_user)):
     """This endpoint will say hello to the logged user.
@@ -360,8 +378,6 @@ async def protected_endpoint(user: OpenID = Depends(get_logged_user)):
     }
 '''
 
-
-
 '''
 TODOS:
 
@@ -369,13 +385,13 @@ X - Edit the front end app to use this site for auth instead of access.canadiana
 
 X - CREATE ROUTE TO SERVE (non-image) files from Swift: access-files [pdf] and access-metadata [alto]
 
-- Attach OCR Alto to Canvases
+X - Attach OCR Alto to Canvases
   Mirador text overlay: 
   A per-canvas seeAlso entry pointing to the ALTO or hOCR OCR markup for the page with either:
     A format that is application/xml+alto or text/vnd.hocr+html
     A profile starting with http://www.loc.gov/standards/alto/, http://kba.cloud/hocr-spec, http://kba.github.io/hocr-spec/ or https://github.com/kba/hocr-spec/blob/master/hocr-spec.md
 
-- Attach OCR PDF to Canvases
+X - Attach OCR PDF to Canvases
 
 - Route to save manifest to Mary API 
   https://intility.github.io/fastapi-azure-auth/usage-and-faq/calling_your_apis_from_python
