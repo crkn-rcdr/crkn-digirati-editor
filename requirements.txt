@@ -9,3 +9,5 @@ python-multipart==0.0.12
 fastapi[standard]
 fastapi-sso
 python-jose[cryptography]
+boto3
+botocore
