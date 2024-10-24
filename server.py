@@ -5,134 +5,118 @@ import hashlib
 from PIL import Image
 from PIL.ExifTags import TAGS
 from typing import List
-from fastapi import File, FastAPI, Depends, HTTPException, Security, Request, Header, Response
+from fastapi import (
+    File,
+    FastAPI,
+    Depends,
+    HTTPException,
+    Security,
+    Request,
+    Header,
+    Response,
+)
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from typing_extensions import Annotated
 import requests
 from dotenv import load_dotenv
 import os
-import couchdb 
-#from requests import request
-import datetime  # to calculate expiration of the JWT
+import datetime  
 from fastapi_sso.sso.microsoft import MicrosoftSSO
-from fastapi.security import APIKeyCookie  # this is the part that puts the lock icon to the 
+from fastapi.security import (
+    APIKeyCookie,
+) 
 from fastapi_sso.sso.base import OpenID
-from jose import jwt  # pip install python-jose[cryptography]
+from jose import jwt  
 import boto3
 import botocore
-# https://stackoverflow.com/questions/45244998/azure-ad-authentication-python-web-api
 
 load_dotenv(".env")
-AAD_CLIENT_SECRET=os.getenv('AAD_CLIENT_SECRET')
-AAD_CLIENT_ID=os.getenv('AAD_CLIENT_ID')
-AAD_TENANT_ID=os.getenv('AAD_TENANT_ID')
-AAD_SCOPE_DESCRIPTION=os.getenv('AAD_SCOPE_DESCRIPTION')
-AAD_SCOPE_NAME=os.getenv('AAD_SCOPE_NAME')
-AAD_TENANT_NAME=os.getenv('AAD_TENANT_NAME')
-AAD_AUTH_URL=os.getenv('AAD_AUTH_URL')
-AAD_TOKEN_URL=os.getenv('AAD_TOKEN_URL')
 
-NOID_SERVER=os.getenv('NOID_SERVER')
+AAD_CLIENT_SECRET = os.getenv("AAD_CLIENT_SECRET")
+AAD_CLIENT_ID = os.getenv("AAD_CLIENT_ID")
+AAD_TENANT_ID = os.getenv("AAD_TENANT_ID")
+AAD_SCOPE_DESCRIPTION = os.getenv("AAD_SCOPE_DESCRIPTION")
+AAD_SCOPE_NAME = os.getenv("AAD_SCOPE_NAME")
+AAD_TENANT_NAME = os.getenv("AAD_TENANT_NAME")
+AAD_AUTH_URL = os.getenv("AAD_AUTH_URL")
+AAD_TOKEN_URL = os.getenv("AAD_TOKEN_URL")
 
-SWIFT_AUTH_URL=os.getenv('SWIFT_AUTH_URL')
-SWIFT_USERNAME=os.getenv('SWIFT_USERNAME')
-SWIFT_PASSWORD=os.getenv('SWIFT_PASSWORD')
-SWIFT_PREAUTH_URL=os.getenv('SWIFT_PREAUTH_URL')
+NOID_SERVER = os.getenv("NOID_SERVER")
 
-S3SOURCE_ENDPOINT=os.getenv('S3SOURCE_ENDPOINT')
-S3SOURCE_ACCESS_KEY_ID=os.getenv('S3SOURCE_ACCESS_KEY_ID')
-S3SOURCE_SECRET_KEY=os.getenv('S3SOURCE_SECRET_KEY')
-S3SOURCE_ACCESSFILES_BUCKET_NAME=os.getenv('S3SOURCE_ACCESSFILES_BUCKET_NAME')
+SWIFT_AUTH_URL = os.getenv("SWIFT_AUTH_URL")
+SWIFT_USERNAME = os.getenv("SWIFT_USERNAME")
+SWIFT_PASSWORD = os.getenv("SWIFT_PASSWORD")
+SWIFT_PREAUTH_URL = os.getenv("SWIFT_PREAUTH_URL")
 
-COUCHDB_USER=os.getenv('COUCHDB_USER')
-COUCHDB_PASSWORD=os.getenv('COUCHDB_PASSWORD')
-COUCHDB_URL=os.getenv('COUCHDB_URL')
+S3SOURCE_ENDPOINT = os.getenv("S3SOURCE_ENDPOINT")
+S3SOURCE_ACCESS_KEY_ID = os.getenv("S3SOURCE_ACCESS_KEY_ID")
+S3SOURCE_SECRET_KEY = os.getenv("S3SOURCE_SECRET_KEY")
+S3SOURCE_ACCESSFILES_BUCKET_NAME = os.getenv("S3SOURCE_ACCESSFILES_BUCKET_NAME")
 
-image_api_url = 'https://image-tor.canadiana.ca'
-presentation_api_url = 'https://crkn-iiif-presentation-api.azurewebsites.net'
-crkn_digirati_editor_api_url = 'https://crkn-editor.azurewebsites.net'
+COUCHDB_USER = os.getenv("COUCHDB_USER")
+COUCHDB_PASSWORD = os.getenv("COUCHDB_PASSWORD")
+COUCHDB_URL = os.getenv("COUCHDB_URL")
 
-conn = swiftclient.Connection(authurl=SWIFT_AUTH_URL,
-                              user=SWIFT_USERNAME,
-                              key=SWIFT_PASSWORD,
-                              preauthurl=SWIFT_PREAUTH_URL)
+image_api_url = "https://image-tor.canadiana.ca"
+presentation_api_url = "https://crkn-iiif-presentation-api.azurewebsites.net"
+crkn_digirati_editor_api_url = "https://crkn-editor.azurewebsites.net"
+
+conn = swiftclient.Connection(
+    authurl=SWIFT_AUTH_URL,
+    user=SWIFT_USERNAME,
+    key=SWIFT_PASSWORD,
+    preauthurl=SWIFT_PREAUTH_URL,
+)
 
 s3_conn = boto3.client(
-    service_name='s3',
+    service_name="s3",
     aws_access_key_id=S3SOURCE_ACCESS_KEY_ID,
     aws_secret_access_key=S3SOURCE_SECRET_KEY,
     endpoint_url=S3SOURCE_ENDPOINT,
-    # The next option is only required because my provider only offers "version 2"
-    # authentication protocol. Otherwise this would be 's3v4' (the default, version 4).
-    config=botocore.client.Config(signature_version='s3')
+    config=botocore.client.Config(signature_version="s3"),
 )
 
-# TODO - couch openvpn makes request too slow
-#couch = couchdb.Server('http://'+COUCHDB_USER+':'+COUCHDB_PASSWORD+'@'+COUCHDB_URL+'/')
-#db_access = couch['access']
-#db_canvas = couch['canvas']
 
 def mint_noid(noid_type):
-    url = NOID_SERVER + '/mint/1/' + noid_type
+    url = NOID_SERVER + "/mint/1/" + noid_type
     response = requests.post(url)
     response_data = response.json()
-    noid_id = response_data['ids'][0]
+    noid_id = response_data["ids"][0]
     return noid_id
+
 
 def convert_image(source_file, output_path):
     original = Image.open(source_file)
     original.save(output_path, quality=80)
     output = Image.open(output_path)
-    return {
-        "width": output.width,
-        "height": output.height,
-        "size": output.size
-    }
+    return {"width": output.width, "height": output.height, "size": output.size}
+
 
 def save_image_to_swift(local_filename, swift_filename, container):
     try:
-      with open(local_filename, 'rb') as local_file:
-        file_content = local_file.read()
-        file_md5_hash = hashlib.md5(file_content).hexdigest()
-        conn.put_object(container, swift_filename, contents=file_content)
+        with open(local_filename, "rb") as local_file:
+            file_content = local_file.read()
+            file_md5_hash = hashlib.md5(file_content).hexdigest()
+            conn.put_object(container, swift_filename, contents=file_content)
     except:
         return None
     try:
-       conn.get_container(container, prefix=swift_filename)
-       return file_md5_hash
+        conn.get_container(container, prefix=swift_filename)
+        return file_md5_hash
     except:
         return None
+
 
 def get_file_from_swift(swift_filename, container):
     try:
-      resp_headers, obj_contents = conn.get_object(container, swift_filename)
-      print('got', type(obj_contents))
-      print(resp_headers)
-      return resp_headers, obj_contents
+        resp_headers, obj_contents = conn.get_object(container, swift_filename)
+        print("got", type(obj_contents))
+        print(resp_headers)
+        return resp_headers, obj_contents
     except:
-      print(swift_filename, ' not found')
-      return None, None
+        print(swift_filename, " not found")
+        return None, None
 
-
-'''
-def save_canvas(noid, encoded_noid, width, height, size, md5):
-    #canvas = db_canvas.get(canvas['id'])
-    db_canvas.save({
-        "_id": noid,
-        "master": {
-          "width": width,
-          "extension": "jpg",
-          "md5": md5,
-          "size": size,
-          "height": height,
-          "mime": "image/jpeg"
-        },
-        "source": {
-          "from": "IIIF",
-          "url": image_api_url+'/iiif/2/'+encoded_noid+'/info.json'
-        }
-    })
-''' 
 
 sso = MicrosoftSSO(
     client_id=AAD_CLIENT_ID,
@@ -142,6 +126,7 @@ sso = MicrosoftSSO(
     allow_insecure_http=True,
 )
 
+
 async def get_logged_user(cookie: str = Security(APIKeyCookie(name="token"))) -> OpenID:
     """Get user's JWT stored in cookie 'token', parse it and return the user's OpenID."""
     try:
@@ -149,33 +134,36 @@ async def get_logged_user(cookie: str = Security(APIKeyCookie(name="token"))) ->
         claims = jwt.decode(cookie, key=AAD_CLIENT_SECRET, algorithms=["HS256"])
         return OpenID(**claims["pld"])
     except Exception as error:
-        raise HTTPException(status_code=401, detail="Invalid authentication credentials") from error
+        raise HTTPException(
+            status_code=401, detail="Invalid authentication credentials"
+        ) from error
+
 
 def verify_token(req: Request):
-  try:
-    token = req.headers["Authorization"]
-    print("token", token)
-    # Here your code for verifying the token or whatever you use
-    valid = jwt.decode(token.replace("Bearer ", ""), key=AAD_CLIENT_SECRET, algorithms=["HS256"])
-    print("res", valid)
-    if not valid:
-        raise HTTPException(
-            status_code=401,
-            detail="Unauthorized"
+    try:
+        token = req.headers["Authorization"]
+        print("token", token)
+        # Here your code for verifying the token or whatever you use
+        valid = jwt.decode(
+            token.replace("Bearer ", ""), key=AAD_CLIENT_SECRET, algorithms=["HS256"]
         )
-    return True
-  except  Exception as error:
-    print("An error occurred:", error)
-    return False
+        print("res", valid)
+        if not valid:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+        return True
+    except Exception as error:
+        print("An error occurred:", error)
+        return False
 
 
 app = FastAPI()
 
+
 @app.get("/")
 async def main(cookie: str = Security(APIKeyCookie(name="token"))):
-  return {
-    "token": cookie,
-  }
+    return {
+        "token": cookie,
+    }
 
 
 @app.get("/auth/login")
@@ -202,25 +190,39 @@ async def login_callback(request: Request):
         if not openid:
             raise HTTPException(status_code=401, detail="Authentication failed")
     # Create a JWT with the user's OpenID
-    expiration = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(days=1)
-    token = jwt.encode({"pld": openid.dict(), "exp": expiration, "sub": openid.id}, key=AAD_CLIENT_SECRET, algorithm="HS256")
+    expiration = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(
+        days=1
+    )
+    token = jwt.encode(
+        {"pld": openid.dict(), "exp": expiration, "sub": openid.id},
+        key=AAD_CLIENT_SECRET,
+        algorithm="HS256",
+    )
     response = RedirectResponse(url="/")
     response.set_cookie(
         key="token", value=token, expires=expiration
     )  # This cookie will make sure /protected knows the user
     return response
 
+
 @app.get("/ocr/{prefix}/{noid}")
 async def ocr(prefix, noid):
-    resp_headers, obj_contents = get_file_from_swift(prefix + "/" + noid + "/" + 'ocrTXTMAP.xml', 'access-metadata')
+    resp_headers, obj_contents = get_file_from_swift(
+        prefix + "/" + noid + "/" + "ocrTXTMAP.xml", "access-metadata"
+    )
     if obj_contents == None:
-      resp_headers, obj_contents = get_file_from_swift(prefix + "/" + noid + "/" + 'ocrALTO.xml', 'access-metadata')
-    return Response(content=obj_contents, media_type=resp_headers['content-type'])
+        resp_headers, obj_contents = get_file_from_swift(
+            prefix + "/" + noid + "/" + "ocrALTO.xml", "access-metadata"
+        )
+    return Response(content=obj_contents, media_type=resp_headers["content-type"])
+
 
 @app.get("/pdf/{prefix}/{noid}")
 async def pdf(prefix, noid):
     try:
-        result = s3_conn.get_object(Bucket='access-files', Key=prefix+"/"+ noid+".pdf")
+        result = s3_conn.get_object(
+            Bucket="access-files", Key=prefix + "/" + noid + ".pdf"
+        )
         return StreamingResponse(content=result["Body"].iter_chunks())
     except Exception as e:
         if hasattr(e, "message"):
@@ -231,86 +233,118 @@ async def pdf(prefix, noid):
         else:
             raise HTTPException(status_code=500, detail=str(e))
 
+
+@app.post("/savemanifest")
+async def create_files(manifest, authorized: bool = Depends(verify_token)):
+    return {"message": "todo"}
+
+
 @app.post("/uploadfiles")
-async def create_files(files: Annotated[List[bytes], File()], authorized: bool = Depends(verify_token)):
+async def create_files(
+    files: Annotated[List[bytes], File()],
+    manifest_noid,
+    authorized: bool = Depends(verify_token),
+):
     canvases = []
     # if form ! have manifest noid min noid else use noid...
-    manifest_noid = mint_noid("manifest") 
-    for file in files: 
-        #request_object_content = await file.read()
+    if not manifest_noid:
+        manifest_noid = mint_noid("manifest")
+    for file in files:
+        # request_object_content = await file.read()
         source_file = io.BytesIO(file)
         canvas_noid = mint_noid("canvas")
-        encoded_canvas_noid = canvas_noid.replace('/', '%2F')
-        swift_filename = canvas_noid + ".jpg" # will handle more than 1 file
-        local_filename = encoded_canvas_noid + ".jpg" 
-        convert_info = convert_image(source_file, local_filename) 
+        encoded_canvas_noid = canvas_noid.replace("/", "%2F")
+        swift_filename = canvas_noid + ".jpg"  # will handle more than 1 file
+        local_filename = encoded_canvas_noid + ".jpg"
+        convert_info = convert_image(source_file, local_filename)
         swift_md5 = save_image_to_swift(local_filename, swift_filename, "access-files")
         if swift_md5:
             # save_canvas(canvas_noid, encoded_canvas_noid, convert_info['width'], convert_info['height'], convert_info['size'], swift_md5)
-            canvases.append({
-                "id": presentation_api_url + '/canvas/' + canvas_noid,
-                "width": convert_info['width'],
-                "height": convert_info['height'],
-                "thumbnail": [
-                    {
-                        "id": image_api_url + '/iiif/2/' + encoded_canvas_noid + '/full/max/0/default.jpg',
-                        "type": "Image",
-                        "format": "image/jpeg"
-                    }
-                ],
-                "items": [
-                    {
-                        "id": presentation_api_url + '/' + manifest_noid + '/annotationpage/' + canvas_noid + '/main',
-                        "type": "AnnotationPage",
-                        "items": [
-                            {
-                                "id": presentation_api_url + '/' + manifest_noid + '/annotation/' + canvas_noid + '/main/image',
-                                "body": {
-                                    "id": image_api_url + '/iiif/2/' + encoded_canvas_noid + '/full/max/0/default.jpg',
-                                    "type": "Image",
-                                    "width": convert_info['width'],
-                                    "height": convert_info['height'],
-                                    "format": "image/jpeg",
-                                    "service": [
-                                        {
-                                            "id": image_api_url + '/iiif/2/' + encoded_canvas_noid,
-                                            "type": "ImageService2",
-                                            "profile": "level2"
-                                        }
-                                    ]
-                                },
-                                "type": "Annotation",
-                                "target": presentation_api_url + '/canvas/' + canvas_noid,
-                                "motivation": "painting"
-                            }
-                        ]
-                    }
-                ],
-                "seeAlso" : [
-                  {
-                    "id": crkn_digirati_editor_api_url + "/ocr/" + canvas_noid,
-                    "type": "Dataset",
-                    "label": { "en": [ "Optical Character Recognition text in XML" ] },
-                    "format": "text/xml",
-                    "profile": "http://www.loc.gov/standards/alto"
-                  }
-                ],
-                "rendering": [
-                  {
-                    "id": crkn_digirati_editor_api_url + "/pdf/" + canvas_noid,
-                    "type": "Text",
-                    "label": {
-                      "en": [
-                        "PDF version"
-                      ]
-                    },
-                    "format": "application/pdf"
-                  }
-                ]
-            })
+            canvases.append(
+                {
+                    "id": presentation_api_url + "/canvas/" + canvas_noid,
+                    "width": convert_info["width"],
+                    "height": convert_info["height"],
+                    "thumbnail": [
+                        {
+                            "id": image_api_url
+                            + "/iiif/2/"
+                            + encoded_canvas_noid
+                            + "/full/max/0/default.jpg",
+                            "type": "Image",
+                            "format": "image/jpeg",
+                        }
+                    ],
+                    "items": [
+                        {
+                            "id": presentation_api_url
+                            + "/"
+                            + manifest_noid
+                            + "/annotationpage/"
+                            + canvas_noid
+                            + "/main",
+                            "type": "AnnotationPage",
+                            "items": [
+                                {
+                                    "id": presentation_api_url
+                                    + "/"
+                                    + manifest_noid
+                                    + "/annotation/"
+                                    + canvas_noid
+                                    + "/main/image",
+                                    "body": {
+                                        "id": image_api_url
+                                        + "/iiif/2/"
+                                        + encoded_canvas_noid
+                                        + "/full/max/0/default.jpg",
+                                        "type": "Image",
+                                        "width": convert_info["width"],
+                                        "height": convert_info["height"],
+                                        "format": "image/jpeg",
+                                        "service": [
+                                            {
+                                                "id": image_api_url
+                                                + "/iiif/2/"
+                                                + encoded_canvas_noid,
+                                                "type": "ImageService2",
+                                                "profile": "level2",
+                                            }
+                                        ],
+                                    },
+                                    "type": "Annotation",
+                                    "target": presentation_api_url
+                                    + "/canvas/"
+                                    + canvas_noid,
+                                    "motivation": "painting",
+                                }
+                            ],
+                        }
+                    ],
+                    "seeAlso": [
+                        {
+                            "id": crkn_digirati_editor_api_url + "/ocr/" + canvas_noid,
+                            "type": "Dataset",
+                            "label": {
+                                "en": ["Optical Character Recognition text in XML"]
+                            },
+                            "format": "text/xml",
+                            "profile": "http://www.loc.gov/standards/alto",
+                        }
+                    ],
+                    "rendering": [
+                        {
+                            "id": crkn_digirati_editor_api_url + "/pdf/" + canvas_noid,
+                            "type": "Text",
+                            "label": {"en": ["PDF version"]},
+                            "format": "application/pdf",
+                        }
+                    ],
+                }
+            )
     return {"canvases": canvases}
 
-''' Example Canvas Create Res:
+
+""" Example Canvas Create Res:
 {
   "canvases": [
     {
@@ -355,7 +389,7 @@ async def create_files(files: Annotated[List[bytes], File()], authorized: bool =
     }
   ]
 }
-'''
+"""
 
 ''' Authorized Examples
 @app.get("/bearer-protected")
@@ -378,7 +412,7 @@ async def protected_endpoint(user: OpenID = Depends(get_logged_user)):
     }
 '''
 
-'''
+"""
 TODOS:
 
 X - Edit the front end app to use this site for auth instead of access.canadiana.ca
@@ -415,4 +449,6 @@ X - Attach OCR PDF to Canvases
  
 Therefore these efforts will remove most of Access Platform in the near term (https://github.com/crkn-rcdr/Access-Platform and https://access.canadiana.ca/) Longer term - once we move to blacklight for prod the collection management step will also be removed, and the whole repo goes in the trash
   
-'''
+"""
+
+# https://stackoverflow.com/questions/45244998/azure-ad-authentication-python-web-api
