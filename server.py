@@ -222,6 +222,8 @@ async def ocr(prefix, noid):
         resp_headers, obj_contents = get_file_from_swift(
             f"{prefix}/{noid}/ocrALTO.xml", "access-metadata"
         )
+    if obj_contents == None:
+        return { "message" : "File not found."}
     return Response(content=obj_contents, media_type=resp_headers["content-type"])
 
 
