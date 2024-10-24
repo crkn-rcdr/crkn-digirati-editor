@@ -11,3 +11,5 @@ fastapi-sso
 python-jose[cryptography]
 boto3
 botocore
+msal
+httpx

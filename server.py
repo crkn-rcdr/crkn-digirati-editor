@@ -6,6 +6,7 @@ from PIL import Image
 from PIL.ExifTags import TAGS
 from typing import List
 from fastapi import (
+    UploadFile,
     File,
     FastAPI,
     Depends,
@@ -29,6 +30,8 @@ from fastapi_sso.sso.base import OpenID
 from jose import jwt  
 import boto3
 import botocore
+from msal import ConfidentialClientApplication
+import httpx
 
 load_dotenv(".env")
 
@@ -57,6 +60,11 @@ COUCHDB_USER = os.getenv("COUCHDB_USER")
 COUCHDB_PASSWORD = os.getenv("COUCHDB_PASSWORD")
 COUCHDB_URL = os.getenv("COUCHDB_URL")
 
+PRES_API_HOST = os.getenv("PRES_API_HOST")
+PRES_API_CLIENT_ID = os.getenv("PRES_API_CLIENT_ID")
+PRES_API_TENANT_ID = os.getenv("PRES_API_TENANT_ID")
+PRES_API_CLIENT_SECRET = os.getenv("PRES_API_CLIENT_SECRET")
+
 image_api_url = "https://image-tor.canadiana.ca"
 presentation_api_url = "https://crkn-iiif-presentation-api.azurewebsites.net"
 crkn_digirati_editor_api_url = "https://crkn-editor.azurewebsites.net"
@@ -78,7 +86,7 @@ s3_conn = boto3.client(
 
 
 def mint_noid(noid_type):
-    url = NOID_SERVER + "/mint/1/" + noid_type
+    url = f"{NOID_SERVER}/mint/1/{noid_type}"
     response = requests.post(url)
     response_data = response.json()
     noid_id = response_data["ids"][0]
@@ -208,11 +216,11 @@ async def login_callback(request: Request):
 @app.get("/ocr/{prefix}/{noid}")
 async def ocr(prefix, noid):
     resp_headers, obj_contents = get_file_from_swift(
-        prefix + "/" + noid + "/" + "ocrTXTMAP.xml", "access-metadata"
+        f"{prefix}/{noid}/ocrTXTMAP.xml", "access-metadata"
     )
     if obj_contents == None:
         resp_headers, obj_contents = get_file_from_swift(
-            prefix + "/" + noid + "/" + "ocrALTO.xml", "access-metadata"
+            f"{prefix}/{noid}/ocrALTO.xml", "access-metadata"
         )
     return Response(content=obj_contents, media_type=resp_headers["content-type"])
 
@@ -221,7 +229,7 @@ async def ocr(prefix, noid):
 async def pdf(prefix, noid):
     try:
         result = s3_conn.get_object(
-            Bucket="access-files", Key=prefix + "/" + noid + ".pdf"
+            Bucket="access-files", Key=f"{prefix}/{noid}.pdf"
         )
         return StreamingResponse(content=result["Body"].iter_chunks())
     except Exception as e:
@@ -235,8 +243,31 @@ async def pdf(prefix, noid):
 
 
 @app.post("/savemanifest")
-async def create_files(manifest, authorized: bool = Depends(verify_token)):
-    return {"message": "todo"}
+async def create_files(file: UploadFile, authorized: bool = Depends(verify_token)):
+    if not authorized:
+        return {
+            "message" : "You are not authorized to make this request."
+        }
+    auth_url = f"https://login.microsoftonline.com/{PRES_API_TENANT_ID}"
+    app = ConfidentialClientApplication(
+        client_id=PRES_API_CLIENT_ID,
+        client_credential=PRES_API_CLIENT_SECRET,
+        authority=auth_url
+    )
+    scope_url = f"https://api.{PRES_API_HOST}/.default"
+    result = app.acquire_token_for_client(scopes=scope_url)
+    access_token = result.get("access_token")
+    url = f"https://{PRES_API_HOST}/admin/file"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+    with httpx.Client() as client:
+        response = client.post(f"https://{PRES_API_HOST}/admin/file", files={'file': (file.filename, file.file)}, headers=headers)
+    return {
+        "status_code": response.status_code,
+        "response_body": response.json()
+    }
 
 
 @app.post("/uploadfiles")
@@ -245,6 +276,10 @@ async def create_files(
     manifest_noid,
     authorized: bool = Depends(verify_token),
 ):
+    if not authorized:
+        return {
+            "message" : "You are not authorized to make this request."
+        }
     canvases = []
     # if form ! have manifest noid min noid else use noid...
     if not manifest_noid:
@@ -254,67 +289,47 @@ async def create_files(
         source_file = io.BytesIO(file)
         canvas_noid = mint_noid("canvas")
         encoded_canvas_noid = canvas_noid.replace("/", "%2F")
-        swift_filename = canvas_noid + ".jpg"  # will handle more than 1 file
-        local_filename = encoded_canvas_noid + ".jpg"
+        swift_filename = f"{canvas_noid}.jpg"  # will handle more than 1 file
+        local_filename = f"{encoded_canvas_noid}.jpg"
         convert_info = convert_image(source_file, local_filename)
         swift_md5 = save_image_to_swift(local_filename, swift_filename, "access-files")
         if swift_md5:
             # save_canvas(canvas_noid, encoded_canvas_noid, convert_info['width'], convert_info['height'], convert_info['size'], swift_md5)
             canvases.append(
                 {
-                    "id": presentation_api_url + "/canvas/" + canvas_noid,
+                    "id": f"{presentation_api_url}/canvas/{canvas_noid}",
                     "width": convert_info["width"],
                     "height": convert_info["height"],
                     "thumbnail": [
                         {
-                            "id": image_api_url
-                            + "/iiif/2/"
-                            + encoded_canvas_noid
-                            + "/full/max/0/default.jpg",
+                            "id": f"{image_api_url}/iiif/2/{encoded_canvas_noid}/full/max/0/default.jpg",
                             "type": "Image",
                             "format": "image/jpeg",
                         }
                     ],
                     "items": [
                         {
-                            "id": presentation_api_url
-                            + "/"
-                            + manifest_noid
-                            + "/annotationpage/"
-                            + canvas_noid
-                            + "/main",
+                            "id": f"{presentation_api_url}/{manifest_noid}/annotationpage/{canvas_noid}/main",
                             "type": "AnnotationPage",
                             "items": [
                                 {
-                                    "id": presentation_api_url
-                                    + "/"
-                                    + manifest_noid
-                                    + "/annotation/"
-                                    + canvas_noid
-                                    + "/main/image",
+                                    "id": f"{presentation_api_url}/{manifest_noid}/annotation/{canvas_noid}/main/image",
                                     "body": {
-                                        "id": image_api_url
-                                        + "/iiif/2/"
-                                        + encoded_canvas_noid
-                                        + "/full/max/0/default.jpg",
+                                        "id": f"{image_api_url}/iiif/2/{encoded_canvas_noid}/full/max/0/default.jpg",
                                         "type": "Image",
                                         "width": convert_info["width"],
                                         "height": convert_info["height"],
                                         "format": "image/jpeg",
                                         "service": [
                                             {
-                                                "id": image_api_url
-                                                + "/iiif/2/"
-                                                + encoded_canvas_noid,
+                                                "id": f"{image_api_url}/iiif/2/{encoded_canvas_noid}",
                                                 "type": "ImageService2",
                                                 "profile": "level2",
                                             }
                                         ],
                                     },
                                     "type": "Annotation",
-                                    "target": presentation_api_url
-                                    + "/canvas/"
-                                    + canvas_noid,
+                                    "target": f"{presentation_api_url}/canvas/{canvas_noid}",
                                     "motivation": "painting",
                                 }
                             ],
@@ -322,7 +337,7 @@ async def create_files(
                     ],
                     "seeAlso": [
                         {
-                            "id": crkn_digirati_editor_api_url + "/ocr/" + canvas_noid,
+                            "id": f"{crkn_digirati_editor_api_url}/ocr/{canvas_noid}",
                             "type": "Dataset",
                             "label": {
                                 "en": ["Optical Character Recognition text in XML"]
@@ -333,7 +348,7 @@ async def create_files(
                     ],
                     "rendering": [
                         {
-                            "id": crkn_digirati_editor_api_url + "/pdf/" + canvas_noid,
+                            "id": f"{crkn_digirati_editor_api_url}/pdf/{canvas_noid}",
                             "type": "Text",
                             "label": {"en": ["PDF version"]},
                             "format": "application/pdf",
