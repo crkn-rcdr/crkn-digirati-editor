@@ -444,11 +444,12 @@ X - Attach OCR Alto to Canvases
 
 X - Attach OCR PDF to Canvases
 
-- Route to save manifest to Mary API 
+X - Route to save manifest to Mary API 
   https://intility.github.io/fastapi-azure-auth/usage-and-faq/calling_your_apis_from_python
   Attach MARC as SeeAlso to manifest: // https://crkn-blacklight-beta.azurewebsites.net/catalog/<slug>/librarian_view
   Attach OCR PDF SeeAlso to manifest
-  call this route from the front end app
+  
+- call this route from the front end app
 
 - OCR PDF changes:
   Change call for updating canvas in couch - file is replace with same name so we don't need to worry about updating IIIF)
