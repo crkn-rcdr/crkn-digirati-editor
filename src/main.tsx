@@ -9,8 +9,6 @@ interface IElectronAPI {
   chrome: () => string,
   electron: () => string,
   createManifestFromFolder: () => Promise<any>,
-  readManifestFromFileSystem: () => Promise<any>,
-  writeManifestToFileSystem: (data:any) => Promise<any>,
   pushManifestToApis: (data:any) => Promise<any>,
   triggerLegacyIngest: (slug:any) => Promise<any>
 }

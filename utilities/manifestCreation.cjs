@@ -356,9 +356,9 @@ let getManifest = (projectPath, manifestCache) => {
       "items": []
     }
     // Check if save file exists
-    if(typeof manifestCache !== "undefined") {
+    /*if(typeof manifestCache !== "undefined") {
       manifest = manifestCache
-    }
+    }*/
     manifest['items'] = getManifestItems(files)
       
     return manifest

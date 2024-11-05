@@ -12,15 +12,16 @@ export function PublishManifestToAPI() {
       const data = vault.toPresentation3({ id: manifestId, type: 'Manifest' })
       console.log("save", data)
       window.electronAPI.pushManifestToApis(data)
-        .then ( res => { // {result, data}
+        .then ( saveRes => { // {result, data}
           try {
-            console.log("Result", res)
-            if(res.result.success) {
-              localStorage.setItem("manifest-data", JSON.stringify(res.data))
+            console.log("Result", saveRes['data'])
+            if(saveRes.result.success) {
+              localStorage.setItem("manifest-id", saveRes.data.id)
+              localStorage.setItem("manifest-data", JSON.stringify(saveRes.data))
               window.location.reload()
             }
           } catch (e) {
-            console.log("error loading to vault.")
+            console.log("error pushing to api.")
           }
         })
     }

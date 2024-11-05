@@ -1,8 +1,8 @@
-import { useExistingVault } from "react-iiif-vault"
+//import { useExistingVault } from "react-iiif-vault"
 import { MenuItem } from '@chakra-ui/react'
 
 export function CreateManifestFromFolder() {
-  const vault = useExistingVault()
+  //const vault = useExistingVault()
 
   let onSelectPress = () => {
     window.electronAPI.createManifestFromFolder()
@@ -12,7 +12,9 @@ export function CreateManifestFromFolder() {
           res['id'] = id
           localStorage.removeItem("manifest-data")
           localStorage.setItem("manifest-id", id)
-          vault.loadManifestSync(res['id'], res)
+          localStorage.setItem("manifest-data", JSON.stringify(res))
+          window.location.reload()
+          //vault.loadManifestSync(res['id'], res)
         } catch (e) {
           console.log(e)
         }

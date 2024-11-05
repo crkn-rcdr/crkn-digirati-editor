@@ -1,7 +1,6 @@
 const { app, BrowserWindow, session } = require('electron')
 const path = require('path')
 const getFolderContentsArray = require('./utilities/getFolderContentsArray.cjs')
-const legacyIngestTrigger = require('./utilities/legacyIngestTrigger.cjs')
 const { ipcMain, dialog } = require("electron")
 const fs = require('fs')
 const { getManifest, getManifestItems } = require("./utilities/manifestCreation.cjs")
@@ -15,6 +14,8 @@ const mime = require('mime-types')
 /*
 const { download } = import('electron-dl')
 */
+let AUTH_TOKEN 
+
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 1200,
@@ -24,13 +25,8 @@ const createWindow = () => {
     }
   })
 
-  ipcMain.handle("triggerLegacyIngest", async (event, slug) => {
-    let response = await legacyIngestTrigger(slug, AUTH_TOKEN)
-    console.log(response)
-    return response.status == 200
-  })
-
   ipcMain.handle("pushManifestToApis", async (event, data) => {
+    console.log(data)
     let result = writeDcCsv(data)
     console.log(result)
     if (result.success) {
@@ -48,9 +44,8 @@ const createWindow = () => {
         "Publication Date",
         "Source"
       ]
-
-      let slug = ''
       let newMetadata = []
+      let slug
       for (let field of data["metadata"]) { 
         console.log(field['label']['en'], fieldsToRemove.includes(field['label']['en'][0]))
         if(!fieldsToRemove.includes(field['label']['en'][0])) {
@@ -60,69 +55,109 @@ const createWindow = () => {
       }
       data['metadata'] = newMetadata
 
-      
-      const formData  = new FormData()
-      // check if manifest has noid in id
+      // Check if manifest has noid in id
       const manifestIdSet = data['id'].includes('http')
+      let manifestId = null
       if(manifestIdSet) {
         const parsedUrl = new URL(data['id'])
         const pathParts = parsedUrl.pathname.split('/').filter(Boolean)
-        //formData.append("manifest_id", `${pathParts[0]}/${pathParts[1]}`)
+        console.log("pathParts", pathParts)
+        manifestId = `${pathParts[0]}/${pathParts[1]}`
       } else {
-        //formData.append("manifest_id", null)
+        manifestId = `new/new`
       }
 
-      let indexesOfItemsToCreate = []
+      // Send all of the save image requests
       let i = 0
-      // For each canvas
-      //     if not crkn url - id must include: "https://crkn-iiif-presentation-api.azurewebsites.net/canvas"
-      //        form data append file blob
-      //        indexesOfItemsToCreate.push(i)
-      //     i++
-      // Case for local files:
-      let canvasFile = data['items'][0]['id'].replace("canvas-", "")
-      console.log(canvasFile)
-      const file = fs.readFileSync(canvasFile) 
-      const type = mime.lookup(canvasFile)
-      const fileBlob = new Blob([file], { type: type })
-      const fileData = {
-        filename: path.basename(canvasFile), // Ensure the filename is set
-        contentType: 'application/octet-stream' // Optional: Set content type
-      }
-      formData.append("files", fileBlob, fileData)
-  
-      // case for external http files:
-      // todo
-
-      // send create canvases request - add manifest noid if exists
-      const response = await fetch("http://127.0.0.1:80/uploadfiles", {
-        method: 'POST',
-        body: formData
-      })
-      const canvases = await response.json()
-      console.log(JSON.stringify(canvases))
-      if(canvases.length) {
-        i = 0
-        if(!manifestIdSet) { // set manifest id from response if no manifest id not already created
-          const url = canvases[0]['items'][0]['id']
-          const urlObj = new URL(url)
-          const host = urlObj.host
-          const pathname = urlObj.pathname
-          const index = pathname.indexOf('annotationpage')
-          const modifiedPathname = pathname.slice(0, index)
-          data['id'] = `${urlObj.protocol}//${host}${modifiedPathname}`
-          console.log("manifest id", data['id'] )
+      let canvasIndexArray = []
+      for(let canvas of data['items']) {
+        if(!canvas['id'].includes('http')) {
+          const formData  = new FormData()
+          const canvasFilePath = data['items'][0]['id'].replace("canvas-", "")
+          console.log(canvasFilePath)
+          const file = fs.readFileSync(canvasFilePath) 
+          const type = mime.lookup(canvasFilePath)
+          const fileBlob = new Blob([file], { type: type })
+          const fileData = {
+            filename: path.basename(canvasFilePath), // Ensure the filename is set
+            contentType: 'application/octet-stream' // Optional: Set content type
+          }
+          formData.append("files", fileBlob, fileData)
+          // Send create canvases request - add manifest noid if exists
+          const response = await fetch(`http://localhost:8000/uploadfiles/${manifestId}`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'Authorization': `Bearer ${AUTH_TOKEN}`
+            }
+          })
+          const canvasRes = await response.json()
+          console.log(canvasRes)
+          if(canvasRes['canvases'].length) {
+            let canvas = canvasRes['canvases'][0]
+            // If new manifest, set manifest id from response
+            if(!manifestIdSet) { 
+              const url = canvas['items'][0]['id']
+              const urlObj = new URL(url)
+              const host = urlObj.host
+              const pathname = urlObj.pathname
+              const index = pathname.indexOf('annotationpage')
+              const modifiedPathname = pathname.slice(0, index)
+              data['id'] = 'test'//`${urlObj.protocol}//${host}${modifiedPathname}`
+              manifestId = modifiedPathname.replace(/^\/|\/$/g, '')
+              console.log("manifest id", manifestId)
+            }
+            // Replace item in manifest item list...
+            //data['items'][i] = canvas
+            canvasIndexArray.push(
+              {
+                index: i,
+                canvas
+              }
+            )
+          } else {
+            dialog.showErrorBox('Error', `There was a problem saving this image: ${canvasFilePath}`) 
+            break
+          } 
         }
+        i = i + 1
+      }
 
-        // replace items in item list...
-        // for canvas in response
-        //   manifest['items'][indexesOfItemsToCreate[i]] = canvas
-        //   i++
+      for(let canvasIndexObj of canvasIndexArray) {
+        data['items'][canvasIndexObj['index']] = canvasIndexObj['canvas']
       }
       
-      // through backend, send request to mary API for create manifest
-      
-      console.log(response)
+      // Now attach required files
+      data['seeAlso'] = [
+        {
+          "id": `https://crkn-canadiana-beta.azurewebsites.net/catalog/${slug}/librarian_view`,
+          "type": "Dataset",
+          "label": {
+            "en": [
+              "Alto XML Metadata"
+            ]
+          },
+          "format": "text/xml",
+          "profile": "https://www.loc.gov/standards/alto/v4/alto.xsd"
+        }
+      ]
+      data['rendering'] = [
+        {
+          "id": `http://localhost:8000/pdf/${manifestId}`,
+          "type": "Text",
+          "label": {
+            "en": [
+              "PDF version"
+            ]
+          },
+          "format": "application/pdf"
+        }
+      ]
+
+      //console.log('manifest', data)
+      /*
+        - send http://localhost:8000/savemanifest (post, auth token, file json)
+      */
     } else {
       // display error popup
       dialog.showErrorBox('Error', result.message) 
@@ -130,48 +165,6 @@ const createWindow = () => {
     return { result, data }
   })
   
-  ipcMain.handle("writeManifestToFileSystem", async (event, data) => {
-    const folderPath = path.dirname(data['items'][0]['id'].replace("canvas-", ''))
-    const projectPath = path.dirname(folderPath)
-    const pathToSaveTo = path.join(projectPath,'.manifest.json')
-    // Handle any image re-ordering. 
-    // 1. Rename source images while handling duplicates.
-    let i = 0
-    for(let item of data['items']) { 
-      const fileName = item['id'].replace("canvas-", '')
-      const ext = path.extname(fileName)
-      const newFileName = path.join( path.dirname(fileName), "tmp."+(i+1).toString().padStart(4, '0')+ext )
-      fs.renameSync( fileName, newFileName )
-      i++
-    }
-    let files = getFolderContentsArray(folderPath) 
-    i = 0
-    for(let filePath of files) { 
-      const newFileName = filePath.replace("tmp.", '')
-      fs.renameSync( filePath, newFileName )
-      i++
-    }
-    //Note: Openseadragon seems to be caching the image source data, so I reload the page on the client side.
-    files = getFolderContentsArray(folderPath) 
-    data['items'] = getManifestItems(files)
-    //Write
-    fs.writeFileSync(pathToSaveTo, JSON.stringify(data), 'utf-8') 
-    return data
-  })
-
-  ipcMain.handle("readManifestFromFileSystem", async (event) => {
-    const handler = await dialog.showOpenDialog({properties: ['openDirectory']})
-    if(!handler.filePaths[0]) return
-    const folderPath = handler.filePaths[0].replace(/\\/g, '/')
-    // Check if save file exists
-    const manifestCache = path.join(path.dirname(folderPath),'.manifest.json')
-    if(fs.existsSync(manifestCache)) {
-      manifest = JSON.parse(fs.readFileSync(manifestCache, 'utf-8'))
-    }
-    return getManifest(folderPath)
-  })
-
-  // Not used right now.
   ipcMain.handle("createManifestFromFolder", async (event) => {
     const handler = await dialog.showOpenDialog({properties: ['openDirectory']})
     if(!handler.filePaths[0]) return
@@ -185,10 +178,10 @@ const createWindow = () => {
 app.whenReady().then(() => {
   // Calls the back end to authenticate
   const store = new Store()
-  let AUTH_TOKEN = store.get('AUTH_TOKEN')
+  AUTH_TOKEN = store.get('AUTH_TOKEN')
   // TODO - get expiry time and check
   console.log("stored AUTH_TOKEN", AUTH_TOKEN)
-  if(typeof AUTH_TOKEN === "undefined") {
+  //if(typeof AUTH_TOKEN === "undefined") {
     const authWindow = new BrowserWindow({
       webPreferences: {
           nodeIntegration: false,
@@ -202,10 +195,11 @@ app.whenReady().then(() => {
         console.log("calling")
         session.defaultSession.cookies.get({ name : 'token'})
           .then((cookies) => {
-            console.log(cookies[0].value)
-            store.set('AUTH_TOKEN', cookies[0].value)
-            //store.set('AUTH_TOKEN_EXPIRE', timestamp)
-            authWindow.close()
+            if(cookies.length) {
+              console.log(cookies[0].value)
+              store.set('AUTH_TOKEN', cookies[0].value)
+              authWindow.close()
+            }
           }).catch((error) => {
             console.log(error)
           })
@@ -213,9 +207,9 @@ app.whenReady().then(() => {
     authWindow.on('closed', function() {
       createWindow()
     })
-  } else {
-    createWindow()
-  }
+  //} else {
+  //  createWindow()
+  //}
 })
 
 app.on('window-all-closed', () => {

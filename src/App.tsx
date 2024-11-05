@@ -7,8 +7,8 @@ import { Vault } from "@iiif/helpers/vault"
 import { useEffect, useState } from "react"
 import { Button, ChakraProvider } from '@chakra-ui/react'
 import { OpenManifestFromURL } from "./components/OpenManifestFromURL"
-//import { CreateManifestFromFolder } from "./components/CreateManifestFromFolder"
-import { WriteManifestToFileSystem } from "./components/WriteManifestToFileSystem"
+import { CreateManifestFromFolder } from "./components/CreateManifestFromFolder"
+//import { WriteManifestToFileSystem } from "./components/WriteManifestToFileSystem"
 import { PublishManifestToAPI } from "./components/PublishManifestToAPI"
 import { ChevronDownIcon} from '@chakra-ui/icons'
 import {
@@ -16,7 +16,7 @@ import {
   MenuButton,
   MenuList
 } from '@chakra-ui/react'
-import { ReadManifestFromFileSystem } from "./components/ReadManifestFromFileSystem"
+//import { ReadManifestFromFileSystem } from "./components/ReadManifestFromFileSystem"
 
 
 function App() {
@@ -28,6 +28,7 @@ function App() {
     if(typeof manifest === "string") {
       try {
         let storedData = JSON.parse(manifest)
+        console.log("storedddd", manifest)
         setData(storedData as any)
       } catch(e) {
         console.log(e)
@@ -38,8 +39,10 @@ function App() {
   vault.subscribe(() => {
     try {
       const manifestId = localStorage.getItem("manifest-id")
+      console.log("manifestId", manifestId)
       if(typeof manifestId === "string") {
         const manifest = vault.getObject(manifestId)
+        console.log("storedvaultddd", manifest)
         setData(manifest as any)
       }
     } catch (e) {
@@ -57,17 +60,8 @@ function App() {
                         Open
                       </MenuButton>
                       <MenuList>
-                        <ReadManifestFromFileSystem label="Open Project from Folder"/>
+                        <CreateManifestFromFolder/>
                         <OpenManifestFromURL/>
-                      </MenuList>
-                    </Menu>
-                    <Menu>
-                      <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-                        Tools
-                      </MenuButton>
-                      <MenuList>
-                        <ReadManifestFromFileSystem label="Read Images from Folder"/>
-                        <WriteManifestToFileSystem label="Write Images to Folder"/>
                       </MenuList>
                     </Menu>
                     <Menu>
@@ -75,7 +69,6 @@ function App() {
                         Save
                       </MenuButton>
                       <MenuList>
-                        <WriteManifestToFileSystem label="Save Progress Locally"/>
                         <PublishManifestToAPI/>
                       </MenuList>
                     </Menu>
@@ -92,7 +85,7 @@ function App() {
                     Open
                   </MenuButton>
                   <MenuList>
-                    <ReadManifestFromFileSystem label="Open Project from Folder"/>
+                    <CreateManifestFromFolder/>
                     <OpenManifestFromURL/>
                   </MenuList>
                 </Menu>
@@ -104,6 +97,15 @@ function App() {
 }
 export default App
 
+/*<Menu>
+  <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+    Tools
+  </MenuButton>
+  <MenuList>
+    <ReadManifestFromFileSystem label="Read Images from Folder"/>
+    <WriteManifestToFileSystem label="Write Images to Folder"/>
+  </MenuList>
+</Menu>*/
 
 /*const saveVault = useCallback(() => {
     const vaultData = vault.toPresentation3({ id: manifestId, type: 'Manifest' })
