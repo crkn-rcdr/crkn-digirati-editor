@@ -26,6 +26,8 @@ const createWindow = () => {
   })
 
   ipcMain.handle("pushManifestToApis", async (event, data) => {
+    let loading = new BrowserWindow()
+    loading.loadFile('saving.html')
     console.log(data)
     let result = writeDcCsv(data)
     console.log(result)
@@ -71,6 +73,10 @@ const createWindow = () => {
       let i = 0
       let canvasIndexArray = []
       for(let canvas of data['items']) {
+        loading.webContents.executeJavaScript(`
+          document.getElementById('message').innerHTML = 'Saving image ${i+1} of ${data['items'].length}...';
+        `)
+        // Only save local files
         if(!canvas['id'].includes('http')) {
           const formData  = new FormData()
           const canvasFilePath = data['items'][0]['id'].replace("canvas-", "")
@@ -124,7 +130,8 @@ const createWindow = () => {
       }
 
       for(let canvasIndexObj of canvasIndexArray) {
-        data['items'][canvasIndexObj['index']] = canvasIndexObj['canvas']
+        // Don't replace entire canvas, just merge the 2 objs
+        Object.assign(data['items'][canvasIndexObj['index']], canvasIndexObj['canvas'])
       }
       
       // Now attach required files
@@ -134,11 +141,11 @@ const createWindow = () => {
           "type": "Dataset",
           "label": {
             "en": [
-              "Alto XML Metadata"
+              "MARC Metadata"
             ]
           },
           "format": "text/xml",
-          "profile": "https://www.loc.gov/standards/alto/v4/alto.xsd"
+          "profile": "https://www.loc.gov/marc/"
         }
       ]
       data['rendering'] = [
@@ -154,14 +161,22 @@ const createWindow = () => {
         }
       ]
 
+      loading.webContents.executeJavaScript(`
+        document.getElementById('message').innerHTML = 'Saving manifest...';
+      `)
       //console.log('manifest', data)
       /*
-        - send http://localhost:8000/savemanifest (post, auth token, file json)
+        TODO: send http://localhost:8000/savemanifest (post, auth token, file json)
       */
+      loading.webContents.executeJavaScript(`
+        document.getElementById('message').innerHTML = 'Success!';
+      `)
     } else {
       // display error popup
       dialog.showErrorBox('Error', result.message) 
     }
+    loading.hide()
+    loading.close()
     return { result, data }
   })
   
