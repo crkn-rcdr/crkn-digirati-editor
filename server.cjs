@@ -1,21 +1,15 @@
-const { app, BrowserWindow, session } = require('electron')
+const { app, BrowserWindow, session, ipcMain, dialog } = require('electron')
 const path = require('path')
-const getFolderContentsArray = require('./utilities/getFolderContentsArray.cjs')
-const { ipcMain, dialog } = require("electron")
 const fs = require('fs')
+const mime = require('mime-types')
+const Store = require('electron-store')
 const { getManifest, getManifestItems } = require("./utilities/manifestCreation.cjs")
 const writeDcCsv = require("./utilities/writeDcCsv.cjs")
-const Store = require('electron-store')
-const mime = require('mime-types')
 
-//const { fork } = require('child_process')
-//const ps = fork(`${__dirname}/fileServer.cjs`)
-//console.log("Fileserver running in the bg: ", ps)
-/*
-const { download } = import('electron-dl')
-*/
-let AUTH_TOKEN 
+// Global variable for auth token
+let AUTH_TOKEN
 
+// Create the main application window
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 1200,
@@ -25,221 +19,254 @@ const createWindow = () => {
     }
   })
 
-  ipcMain.handle("pushManifestToApis", async (event, data) => {
-    let loading = new BrowserWindow()
-    loading.loadFile('saving.html')
-    console.log(data)
-    let result = writeDcCsv(data)
-    console.log(result)
-    if (result.success) {
-      // remove fields from manifest
-      let fieldsToRemove = [ 
-        "InMagic Identifier",
-        "CIHM Identifier",
-        "Alternate Title", //(must be the second title column in the record)
-        "Volume/Issue", //(we concatenate this field with the main title field)
-        "Issue Date",
-        "Coverage Date",
-        "Language",
-        "Place of Publication",
-        "Publisher",
-        "Publication Date",
-        "Source"
-      ]
-      let newMetadata = []
-      let slug
-      for (let field of data["metadata"]) { 
-        console.log(field['label']['en'], fieldsToRemove.includes(field['label']['en'][0]))
-        if(!fieldsToRemove.includes(field['label']['en'][0])) {
-          newMetadata.push(field)
-        }
-        if(field['label']['en'] === "Slug") slug = field['value']['en']
-      }
-      data['metadata'] = newMetadata
+  ipcMain.handle("pushManifestToApis", handlePushManifest)
+  ipcMain.handle("createManifestFromFolder", handleCreateManifestFromFolder)
 
-      // Check if manifest has noid in id
-      const manifestIdSet = data['id'].includes('http')
-      let manifestId = null
-      if(manifestIdSet) {
-        const parsedUrl = new URL(data['id'])
-        const pathParts = parsedUrl.pathname.split('/').filter(Boolean)
-        console.log("pathParts", pathParts)
-        manifestId = `${pathParts[0]}/${pathParts[1]}`
-      } else {
-        manifestId = `new/new`
-      }
-
-      // Send all of the save image requests
-      let i = 0
-      let canvasIndexArray = []
-      for(let canvas of data['items']) {
-        loading.webContents.executeJavaScript(`
-          document.getElementById('message').innerHTML = 'Saving image ${i+1} of ${data['items'].length}...';
-        `)
-        // Only save local files
-        if(!canvas['id'].includes('http')) {
-          const formData  = new FormData()
-          const canvasFilePath = data['items'][0]['id'].replace("canvas-", "")
-          console.log(canvasFilePath)
-          const file = fs.readFileSync(canvasFilePath) 
-          const type = mime.lookup(canvasFilePath)
-          const fileBlob = new Blob([file], { type: type })
-          const fileData = {
-            filename: path.basename(canvasFilePath), // Ensure the filename is set
-            contentType: 'application/octet-stream' // Optional: Set content type
-          }
-          formData.append("files", fileBlob, fileData)
-          // Send create canvases request - add manifest noid if exists
-          const response = await fetch(`http://localhost:8000/uploadfiles/${manifestId}`, {
-            method: 'POST',
-            body: formData,
-            headers: {
-              'Authorization': `Bearer ${AUTH_TOKEN}`
-            }
-          })
-          const canvasRes = await response.json()
-          console.log(canvasRes)
-          if(canvasRes['canvases'].length) {
-            let canvas = canvasRes['canvases'][0]
-            // If new manifest, set manifest id from response
-            if(!manifestIdSet) { 
-              const url = canvas['items'][0]['id']
-              const urlObj = new URL(url)
-              const host = urlObj.host
-              const pathname = urlObj.pathname
-              const index = pathname.indexOf('annotationpage')
-              const modifiedPathname = pathname.slice(0, index)
-              data['id'] = 'test'//`${urlObj.protocol}//${host}${modifiedPathname}`
-              manifestId = modifiedPathname.replace(/^\/|\/$/g, '')
-              console.log("manifest id", manifestId)
-            }
-            // Replace item in manifest item list...
-            //data['items'][i] = canvas
-            canvasIndexArray.push(
-              {
-                index: i,
-                canvas
-              }
-            )
-          } else {
-            dialog.showErrorBox('Error', `There was a problem saving this image: ${canvasFilePath}`) 
-            break
-          } 
-        }
-        i = i + 1
-      }
-
-      for(let canvasIndexObj of canvasIndexArray) {
-        // Don't replace entire canvas, just merge the 2 objs
-        Object.assign(data['items'][canvasIndexObj['index']], canvasIndexObj['canvas'])
-      }
-      
-      // Now attach required files
-      data['seeAlso'] = [
-        {
-          "id": `https://crkn-canadiana-beta.azurewebsites.net/catalog/${slug}/librarian_view`,
-          "type": "Dataset",
-          "label": {
-            "en": [
-              "MARC Metadata"
-            ]
-          },
-          "format": "text/xml",
-          "profile": "https://www.loc.gov/marc/"
-        }
-      ]
-      data['rendering'] = [
-        {
-          "id": `http://localhost:8000/pdf/${manifestId}`,
-          "type": "Text",
-          "label": {
-            "en": [
-              "PDF version"
-            ]
-          },
-          "format": "application/pdf"
-        }
-      ]
-
-      loading.webContents.executeJavaScript(`
-        document.getElementById('message').innerHTML = 'Saving manifest...';
-      `)
-      //console.log('manifest', data)
-      /*
-        TODO: send http://localhost:8000/savemanifest (post, auth token, file json)
-      */
-      const response = await fetch(`http://localhost:8000/savemanifest`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          'Authorization': `Bearer ${AUTH_TOKEN}`
-        }
-      })
-      const manifestRes = await response.json()
-      console.log(manifestRes)
-      if(manifestRes.success) {
-        loading.webContents.executeJavaScript(`
-          document.getElementById('title').innerHTML = 'Success';
-          document.getElementById('message').innerHTML = 'Your manifest has been saved to the API.';
-        `)
-      } else {
-        loading.webContents.executeJavaScript(`
-          document.getElementById('title').innerHTML = 'Error';
-          document.getElementById('message').innerHTML = '${manifestRes.message}';
-        `)
-      }
-    } else {
-      // display error popup
-      dialog.showErrorBox('Error', result.message) 
-    }
-    return { result, data }
-  })
-  
-  ipcMain.handle("createManifestFromFolder", async (event) => {
-    const handler = await dialog.showOpenDialog({properties: ['openDirectory']})
-    if(!handler.filePaths[0]) return
-    const folderPath = handler.filePaths[0].replace(/\\/g, '/')
-    return getManifest(folderPath, null)
-  })
-
-  win.loadFile( path.join(__dirname, '/dist/index.html') )
+  win.loadFile(path.join(__dirname, '/dist/index.html'))
 }
 
+// Handle manifest push to APIs
+const handlePushManifest = async (event, data) => {
+  let loading = new BrowserWindow()
+  loading.loadFile('saving.html')
+  
+  // Writing DC CSV and checking result
+  let result = writeDcCsv(data)
+  console.log(result)
+  
+  if (result.success) {
+    data = cleanManifestId(data)
+    data = cleanManifestMetadata(data)
+    
+    console.log("Check if manifest has a valid ID or generate a new one")
+    // Check if manifest has a valid ID or generate a new one
+    let manifestId = generateManifestId(data)
+
+    console.log("Handle saving images")
+    // Handle saving images
+    manifestId = await saveImagesToCanvas(data, loading, manifestId)
+    data['id'] = `http://crkn-iiif-presentation-api.azurewebsites.net/manifest/${manifestId}`
+
+    console.log("Attach required files to manifest")
+    // Attach required files to manifest
+    attachRequiredFiles(data, manifestId)
+
+    console.log("Save the manifest to the API")
+    // Save the manifest to the API
+    await saveManifestToAPI(data, manifestId, loading)
+
+  } else {
+    dialog.showErrorBox('Error', result.message)
+  }
+
+  return { result, data }
+}
+
+// Format the ID for the API
+const cleanManifestId = (data) => {
+  if(data['id'].includes("http")) return
+  data['id'] = "http://crkn-iiif-presentation-api.azurewebsites.net/manifest/new/new"
+  return data
+}
+
+// Clean up metadata by removing unnecessary fields
+const cleanManifestMetadata = (data) => {
+  let fieldsToRemove = [ 
+    "InMagic Identifier",
+    "CIHM Identifier",
+    "Alternate Title", //(must be the second title column in the record)
+    "Volume/Issue", //(we concatenate this field with the main title field)
+    "Issue Date",
+    "Coverage Date",
+    "Language",
+    "Place of Publication",
+    "Publisher",
+    "Publication Date",
+    "Source"
+  ]
+  let newMetadata = []
+  for (let field of data["metadata"]) { 
+    if(!fieldsToRemove.includes(field['label']['en'][0])) {
+      newMetadata.push(field)
+    }
+  }
+  console.log("newMetadata", JSON.stringify(newMetadata))
+  data['metadata'] = newMetadata
+  return data
+}
+
+// Generate a manifest ID
+const generateManifestId = (data) => {
+  let manifestId
+  const manifestIdSet = data.id.includes('http')
+  console.log("data.id", data.id)
+  if (manifestIdSet) {
+    const regex = /\/([^\/]+\/[^\/]+)$/;
+    const match = data.id.match(regex);
+    if (match) {
+      manifestId = match[1]
+    } else {
+      manifestId = 'new/new'
+    }
+  } else {
+    manifestId = 'new/new'
+  }
+
+  return manifestId
+}
+
+// Save images to canvas
+const saveImagesToCanvas = async (data, loading, manifestId) => {
+  let canvasIndexArray = []
+
+  for (let i = 0; i < data.items.length; i++) {
+    const canvasFilePath = data.items[i].id.replace("canvas-", "")
+
+    // Only process local files
+    if (!data.items[i].id.includes('http')) {
+      loading.webContents.executeJavaScript(`
+        document.getElementById('message').innerHTML = 'Saving image ${i + 1} of ${data.items.length}...';
+      `)
+
+      const formData = createFormData(canvasFilePath)
+
+      const response = await fetch(`http://localhost:8000/uploadfiles/${manifestId}`, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+      })
+
+      const canvasRes = await response.json()
+      console.log(canvasRes)
+      if (canvasRes.canvases.length) {
+        const canvas = canvasRes.canvases[0]
+        canvasIndexArray.push({ index: i, canvas })
+        // Check if manifest has a valid ID or generate a new one
+        if(manifestId == "new/new") {
+          const url = canvas['items'][0]['id']
+          const urlObj = new URL(url)
+          const host = urlObj.host
+          const pathname = urlObj.pathname
+          const index = pathname.indexOf('/annotationpage')
+          const modifiedPathname = pathname.slice(0, index)
+          data['id'] = `${urlObj.protocol}//${host}${modifiedPathname}`
+          manifestId = modifiedPathname.replace(/^\/|\/$/g, '')
+          console.log("manifest id", manifestId)
+        }
+      } else {
+        dialog.showErrorBox('Error', `Problem saving image: ${canvasFilePath}`)
+        break
+      }
+    }
+  }
+
+  // Merge canvases into manifest data
+  for (let canvasIndexObj of canvasIndexArray) {
+    Object.assign(data.items[canvasIndexObj.index], canvasIndexObj.canvas)
+  }
+  return manifestId
+}
+
+// Create FormData for the file upload
+const createFormData = (canvasFilePath) => {
+  const file = fs.readFileSync(canvasFilePath)
+  const type = mime.lookup(canvasFilePath)
+  const fileBlob = new Blob([file], { type })
+
+  const formData = new FormData()
+  formData.append("files", fileBlob, {
+    filename: path.basename(canvasFilePath),
+    contentType: 'application/octet-stream'
+  })
+
+  return formData
+}
+
+// Attach required files to the manifest
+const attachRequiredFiles = (data, manifestId) => {
+  let slug
+  for (let field of data["metadata"]) { 
+    if(field['label']['en'][0] === "Slug") {
+      slug = field['value']['en'][0]
+    }
+  }
+  console.log("slug",slug)
+
+  data.seeAlso = [{
+    id: `https://crkn-canadiana-beta.azurewebsites.net/catalog/${slug}/librarian_view`,
+    type: "Dataset",
+    label: { en: ["MARC Metadata"] },
+    format: "text/xml",
+    profile: "https://www.loc.gov/marc/"
+  }]
+
+  data.rendering = [{
+    id: `http://localhost:8000/pdf/${manifestId}`,
+    type: "Text",
+    label: { en: ["PDF version"] },
+    format: "application/pdf"
+  }]
+}
+
+// Save the manifest to the API
+const saveManifestToAPI = async (data, manifestId, loading) => {
+  loading.webContents.executeJavaScript(`
+    document.getElementById('message').innerHTML = 'Saving manifest...';
+  `)
+
+  console.log(data)
+
+  const response = await fetch(`http://localhost:8000/savemanifest/${manifestId}`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+  })
+  const manifestRes = await response.json()
+  if (manifestRes.success) {
+    loading.webContents.executeJavaScript(`
+      document.getElementById('title').innerHTML = 'Success';
+      document.getElementById('message').innerHTML = 'Your manifest has been saved to the API.';
+    `)
+  } else {
+    loading.webContents.executeJavaScript(`
+      document.getElementById('title').innerHTML = 'Error';
+      document.getElementById('message').innerHTML = '${manifestRes.message}';
+    `)
+  }
+}
+
+// Handle creation of manifest from folder
+const handleCreateManifestFromFolder = async () => {
+  const handler = await dialog.showOpenDialog({ properties: ['openDirectory'] })
+  if (!handler.filePaths[0]) return
+  const folderPath = handler.filePaths[0].replace(/\\/g, '/')
+  return getManifest(folderPath, null)
+}
+
+// Initialize the app
 app.whenReady().then(() => {
-  // Calls the back end to authenticate
   const store = new Store()
   AUTH_TOKEN = store.get('AUTH_TOKEN')
-  // TODO - get expiry time and check
-  console.log("stored AUTH_TOKEN", AUTH_TOKEN)
-  //if(typeof AUTH_TOKEN === "undefined") {
-    const authWindow = new BrowserWindow({
-      webPreferences: {
-          nodeIntegration: false,
-      }
-    })
+
+  if (!AUTH_TOKEN) {
+    const authWindow = new BrowserWindow({ webPreferences: { nodeIntegration: false } })
     const url = new URL("http://localhost:8000/auth/login")
     authWindow.loadURL(url.toString())
-    authWindow.webContents.on(
-      'did-redirect-navigation',
-      function() {
-        console.log("calling")
-        session.defaultSession.cookies.get({ name : 'token'})
-          .then((cookies) => {
-            if(cookies.length) {
-              console.log(cookies[0].value)
-              store.set('AUTH_TOKEN', cookies[0].value)
-              authWindow.close()
-            }
-          }).catch((error) => {
-            console.log(error)
-          })
+
+    authWindow.webContents.on('did-redirect-navigation', () => {
+      session.defaultSession.cookies.get({ name: 'token' })
+        .then(cookies => {
+          if (cookies.length) {
+            store.set('AUTH_TOKEN', cookies[0].value)
+            authWindow.close()
+          }
+        }).catch(console.error)
     })
-    authWindow.on('closed', function() {
-      createWindow()
-    })
-  //} else {
-  //  createWindow()
-  //}
+
+    authWindow.on('closed', createWindow)
+  } else {
+    createWindow()
+  }
 })
 
 app.on('window-all-closed', () => {
