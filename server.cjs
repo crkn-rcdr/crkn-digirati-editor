@@ -168,15 +168,30 @@ const createWindow = () => {
       /*
         TODO: send http://localhost:8000/savemanifest (post, auth token, file json)
       */
-      loading.webContents.executeJavaScript(`
-        document.getElementById('message').innerHTML = 'Success!';
-      `)
+      const response = await fetch(`http://localhost:8000/savemanifest`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+          'Authorization': `Bearer ${AUTH_TOKEN}`
+        }
+      })
+      const manifestRes = await response.json()
+      console.log(manifestRes)
+      if(manifestRes.success) {
+        loading.webContents.executeJavaScript(`
+          document.getElementById('title').innerHTML = 'Success';
+          document.getElementById('message').innerHTML = 'Your manifest has been saved to the API.';
+        `)
+      } else {
+        loading.webContents.executeJavaScript(`
+          document.getElementById('title').innerHTML = 'Error';
+          document.getElementById('message').innerHTML = '${manifestRes.message}';
+        `)
+      }
     } else {
       // display error popup
       dialog.showErrorBox('Error', result.message) 
     }
-    loading.hide()
-    loading.close()
     return { result, data }
   })
   
