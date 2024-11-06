@@ -328,27 +328,19 @@ const handleCreateManifestFromFolder = async () => {
 
 // Initialize the app
 app.whenReady().then(() => {
-  const store = new Store()
-  AUTH_TOKEN = store.get('AUTH_TOKEN')
-  //if (!AUTH_TOKEN) {
   const authWindow = new BrowserWindow({ webPreferences: { nodeIntegration: false } })
   const url = new URL(`${editorApiUrl}/auth/login`)
   authWindow.loadURL(url.toString())
-
   authWindow.webContents.on('did-redirect-navigation', () => {
     session.defaultSession.cookies.get({ name: 'token' })
       .then(cookies => {
         if (cookies.length) {
-          store.set('AUTH_TOKEN', cookies[0].value)
+          AUTH_TOKEN = cookies[0].value
           authWindow.close()
         }
       }).catch(console.error)
   })
-
   authWindow.on('closed', createWindow)
-  /*} else {
-    createWindow()
-  }*/
 })
 
 app.on('window-all-closed', () => {
