@@ -6,6 +6,10 @@ const Store = require('electron-store')
 const { getManifest, getManifestItems } = require("./utilities/manifestCreation.cjs")
 const writeDcCsv = require("./utilities/writeDcCsv.cjs")
 
+const presentationApiUrl = 'https://crkn-iiif-presentation-api.azurewebsites.net'
+const editorApiUrl = 'http://localhost:8000'
+const imageApiUrl = 'https://image-tor.canadiana.ca'
+
 // Global variable for auth token
 let AUTH_TOKEN
 
@@ -27,48 +31,55 @@ const createWindow = () => {
 
 // Handle manifest push to APIs
 const handlePushManifest = async (event, data) => {
-  console.log(data)
-  let loading = new BrowserWindow()
-  loading.loadFile('saving.html')
-  
-  // Writing DC CSV and checking result
-  let result = writeDcCsv(data)
-  console.log(result)
-  
-  if (result.success) {
-    data = cleanManifestId(data)
+  try {
     console.log(data)
-    data = cleanManifestMetadata(data)
+    let loading = new BrowserWindow()
+    loading.loadFile('saving.html')
     
-    console.log("Check if manifest has a valid ID or generate a new one")
-    // Check if manifest has a valid ID or generate a new one
-    let manifestId = generateManifestId(data)
+    // Writing DC CSV and checking result
+    let result = writeDcCsv(data)
+    console.log(result)
+    
+    if (result.success) {
+      data = cleanManifestId(data)
+      data = cleanManifestMetadata(data)
 
-    console.log("Handle saving images")
-    // Handle saving images
-    const newManifestId = await saveImagesToCanvas(data, loading, manifestId)
-    if(manifestId == "new/new") manifestId = newManifestId
-    data['id'] = `http://crkn-iiif-presentation-api.azurewebsites.net/manifest/${manifestId}`
+      console.log("Check if manifest has a valid ID or generate a new one")
+      // Check if manifest has a valid ID or generate a new one
+      let manifestId = generateManifestId(data)
+      if(manifestId == "new/new") {
+        manifestId = await getNewManifestId() //send req to get a manifest ID
+      } 
+      data['id'] = `${presentationApiUrl}/manifest/${manifestId}`
 
-    console.log("Attach required files to manifest")
-    // Attach required files to manifest
-    attachRequiredFiles(data, manifestId)
+      console.log("Handle saving images")
+      // Handle saving images
+      await saveImagesToCanvas(data, loading, manifestId)
 
-    console.log("Save the manifest to the API")
-    // Save the manifest to the API
-    await saveManifestToAPI(data, manifestId, loading)
+      console.log("Attach required files to manifest")
+      // Attach required files to manifest
+      attachRequiredFiles(data, manifestId)
 
-  } else {
-    dialog.showErrorBox('Error', result.message)
+      console.log("Save the manifest to the API")
+      fs.writeFileSync("manifest.json", JSON.stringify(data))
+      // Save the manifest to the API
+      await saveManifestToAPI(data, manifestId, loading)
+
+    } else {
+      dialog.showErrorBox('Error', result.message)
+    }
+    return { result, data }
   }
-
-  return { result, data }
+  catch (e) {
+    dialog.showErrorBox('Error', e.message)
+  }
+  return { result: null, data }
 }
 
 // Format the ID for the API
 const cleanManifestId = (data) => {
   if(data['id'].includes("http")) return data
-  data['id'] = "http://crkn-iiif-presentation-api.azurewebsites.net/manifest/new/new"
+  data['id'] = `${presentationApiUrl}/manifest/new/new`
   return data
 }
 
@@ -103,7 +114,7 @@ const cleanManifestMetadata = (data) => {
 // Generate a manifest ID
 const generateManifestId = (data) => {
   let manifestId
-  const manifestIdSet = data.id.includes('https://crkn-iiif-presentation-api.azurewebsites.net')
+  const manifestIdSet = data.id.includes(presentationApiUrl)
   console.log("data.id", data.id)
   if (manifestIdSet) {
     const regex = /\/([^\/]+\/[^\/]+)$/;
@@ -120,12 +131,28 @@ const generateManifestId = (data) => {
   return manifestId
 }
 
+function extractCanvasNoid(url) {
+  // Define the regex pattern to extract the portion after "/iiif/2/"
+  const pattern = /\/iiif\/2\/([^\/]+%2F[^\/]+)/
+  // Use regex to extract the portion
+  const match = url.match(pattern);
+  if (match) {
+    // Extract the portion and replace %2F with /
+    const extractedPortion = match[1]
+    const modifiedPortion = extractedPortion.replace('%2F', '/')
+    // Return the modified portion (e.g., "69429/c07p8tb10n4j")
+    return modifiedPortion;
+  } else {
+    throw "Error getting canvas id"
+  }
+}
+
 // Save images to canvas
 const saveImagesToCanvas = async (data, loading, manifestId) => {
   let canvasIndexArray = []
   for (let i = 0; i < data.items.length; i++) {
     // Only process local files and non-crkn images
-    if (!data.items[i].id.includes('https://crkn-iiif-presentation-api.azurewebsites.net')) {
+    if (!data.items[i].id.includes(presentationApiUrl)) {
       loading.webContents.executeJavaScript(`
         document.getElementById('message').innerHTML = 'Saving image ${i + 1} of ${data.items.length}...';
       `)
@@ -134,19 +161,18 @@ const saveImagesToCanvas = async (data, loading, manifestId) => {
         const canvasFilePath = data.items[i].id.replace("canvas-", "")
         const formData = createFormDataFromFile(canvasFilePath)
         console.log(formData)
-        const response = await fetch(`http://localhost:8000/uploadfiles/${manifestId}`, {
+        const response = await fetch(`${editorApiUrl}/uploadfiles/${manifestId}`, {
           method: 'POST',
           body: formData,
           headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
         })
         canvasRes = await response.json()
       } 
-      else if(!data.items[i].items[0].items[0].body.id.includes("https://image-tor.canadiana.ca")){
+      else if(!data.items[i].items[0].items[0].body.id.includes(imageApiUrl)){
         console.log({
           urls : [data.items[i].items[0].items[0].body.id]
         })
-        //{"detail":"Invalid token: Signature verification failed"}
-        const response = await fetch(`http://localhost:8000/createfilesfromurl/${manifestId}`, {
+        const response = await fetch(`${editorApiUrl}/createfilesfromurl/${manifestId}`, {
           method: 'POST',
           body: JSON.stringify({
             urls : [data.items[i].items[0].items[0].body.id]
@@ -157,22 +183,61 @@ const saveImagesToCanvas = async (data, loading, manifestId) => {
           }
         })
         canvasRes = await response.json()
+      } else {
+        // https://image-tor.canadiana.ca/iiif/2/69429%2Fc07p8tb10n4j/full/max/0/default.jpg
+        const canvasNoid = extractCanvasNoid(data.items[i].items[0].items[0].body.id)
+        const encodedCanvasNoid = canvasNoid.replace("/", "%2F")
+        const width = data.items[i].width
+        const height = data.items[i].height
+        canvasRes = { canvases : [{
+          "id": `${presentationApiUrl}/canvas/${canvasNoid}`,
+          "width": width,
+          "height": height,
+          "thumbnail": [{
+            "id": `${imageApiUrl}/iiif/2/${encodedCanvasNoid}/full/max/0/default.jpg`,
+            "type": "Image",
+            "format": "image/jpeg"
+          }],
+          "items": [{
+            "id": `${presentationApiUrl}/${manifestId}/annotationpage/${canvasNoid}/main`,
+            "type": "AnnotationPage",
+            "items": [{
+              "id": `${presentationApiUrl}/${manifestId}/annotation/${canvasNoid}/main/image`,
+              "body": {
+                "id": `${imageApiUrl}/iiif/2/${encodedCanvasNoid}/full/max/0/default.jpg`,
+                "type": "Image",
+                "width": width,
+                "height": height,
+                "format": "image/jpeg",
+                "service": [{
+                  "id": `${imageApiUrl}/iiif/2/${encodedCanvasNoid}`,
+                  "type": "ImageService2",
+                  "profile": "level2"
+                }]
+              },
+              "type": "Annotation",
+              "target": `${presentationApiUrl}/canvas/${canvasNoid}`,
+              "motivation": "painting"
+            }]
+          }],
+          "seeAlso": [{
+            "id": `${editorApiUrl}/ocr/${canvasNoid}`,
+            "type": "Dataset",
+            "label": {"en": ["Optical Character Recognition text in XML"]},
+            "format": "text/xml",
+            "profile": "http://www.loc.gov/standards/alto"
+          }],
+          "rendering": [{
+            "id": `${editorApiUrl}/pdf/${canvasNoid}`,
+            "type": "Text",
+            "label": {"en": ["PDF version"]},
+            "format": "application/pdf"
+          }]
+        }]}
       }
       if (canvasRes?.canvases?.length) {
         const canvas = canvasRes.canvases[0]
         canvasIndexArray.push({ index: i, canvas })
-        // Check if manifest has a valid ID or generate a new one
-        if(manifestId == "new/new") {
-          const url = canvas['items'][0]['id']
-          const urlObj = new URL(url)
-          const host = urlObj.host
-          const pathname = urlObj.pathname
-          const index = pathname.indexOf('/annotationpage')
-          const modifiedPathname = pathname.slice(0, index)
-          data['id'] = `${urlObj.protocol}//${host}${modifiedPathname}`
-          manifestId = modifiedPathname.replace(/^\/|\/$/g, '')
-          console.log("manifest id", manifestId)
-        }
       } 
     } 
   }
@@ -181,6 +246,12 @@ const saveImagesToCanvas = async (data, loading, manifestId) => {
     Object.assign(data.items[canvasIndexObj.index], canvasIndexObj.canvas)
   }
   return manifestId
+}
+
+const getNewManifestId = async () => {
+  const response = await fetch(`http://localhost:8000/newid`)
+  const obj = await response.json()
+  return obj.id
 }
 
 // Create FormData from folder for the file upload
@@ -213,7 +284,6 @@ const attachRequiredFiles = (data, manifestId) => {
     format: "text/xml",
     profile: "https://www.loc.gov/marc/"
   }]
-
   data.rendering = [{
     id: `http://localhost:8000/pdf/${manifestId}`,
     type: "Text",

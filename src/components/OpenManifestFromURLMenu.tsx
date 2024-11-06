@@ -33,7 +33,7 @@ export function OpenManifestFromURLMenu() {
       <MenuItem
         onClick={onOpen}
         title="Open Manifest from URL">
-          Open Project from URL
+          Open Manifest from URL
       </MenuItem>
 
       <Modal isOpen={isOpen} onClose={onClose}>
