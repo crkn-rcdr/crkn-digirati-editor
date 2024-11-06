@@ -27,6 +27,7 @@ const createWindow = () => {
 
 // Handle manifest push to APIs
 const handlePushManifest = async (event, data) => {
+  console.log(data)
   let loading = new BrowserWindow()
   loading.loadFile('saving.html')
   
@@ -36,6 +37,7 @@ const handlePushManifest = async (event, data) => {
   
   if (result.success) {
     data = cleanManifestId(data)
+    console.log(data)
     data = cleanManifestMetadata(data)
     
     console.log("Check if manifest has a valid ID or generate a new one")
@@ -44,7 +46,8 @@ const handlePushManifest = async (event, data) => {
 
     console.log("Handle saving images")
     // Handle saving images
-    manifestId = await saveImagesToCanvas(data, loading, manifestId)
+    const newManifestId = await saveImagesToCanvas(data, loading, manifestId)
+    if(manifestId == "new/new") manifestId = newManifestId
     data['id'] = `http://crkn-iiif-presentation-api.azurewebsites.net/manifest/${manifestId}`
 
     console.log("Attach required files to manifest")
@@ -64,7 +67,7 @@ const handlePushManifest = async (event, data) => {
 
 // Format the ID for the API
 const cleanManifestId = (data) => {
-  if(data['id'].includes("http")) return
+  if(data['id'].includes("http")) return data
   data['id'] = "http://crkn-iiif-presentation-api.azurewebsites.net/manifest/new/new"
   return data
 }
@@ -86,8 +89,10 @@ const cleanManifestMetadata = (data) => {
   ]
   let newMetadata = []
   for (let field of data["metadata"]) { 
-    if(!fieldsToRemove.includes(field['label']['en'][0])) {
-      newMetadata.push(field)
+    if('en' in field['label'] && 'en' in field['value'] ) {
+      if(!fieldsToRemove.includes(field['label']['en'][0])) {
+        newMetadata.push(field)
+      }
     }
   }
   console.log("newMetadata", JSON.stringify(newMetadata))
@@ -98,7 +103,7 @@ const cleanManifestMetadata = (data) => {
 // Generate a manifest ID
 const generateManifestId = (data) => {
   let manifestId
-  const manifestIdSet = data.id.includes('http')
+  const manifestIdSet = data.id.includes('https://crkn-iiif-presentation-api.azurewebsites.net')
   console.log("data.id", data.id)
   if (manifestIdSet) {
     const regex = /\/([^\/]+\/[^\/]+)$/;
@@ -118,27 +123,42 @@ const generateManifestId = (data) => {
 // Save images to canvas
 const saveImagesToCanvas = async (data, loading, manifestId) => {
   let canvasIndexArray = []
-
   for (let i = 0; i < data.items.length; i++) {
-    const canvasFilePath = data.items[i].id.replace("canvas-", "")
-
-    // Only process local files
-    if (!data.items[i].id.includes('http')) {
+    // Only process local files and non-crkn images
+    if (!data.items[i].id.includes('https://crkn-iiif-presentation-api.azurewebsites.net')) {
       loading.webContents.executeJavaScript(`
         document.getElementById('message').innerHTML = 'Saving image ${i + 1} of ${data.items.length}...';
       `)
-
-      const formData = createFormData(canvasFilePath)
-
-      const response = await fetch(`http://localhost:8000/uploadfiles/${manifestId}`, {
-        method: 'POST',
-        body: formData,
-        headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
-      })
-
-      const canvasRes = await response.json()
-      console.log(canvasRes)
-      if (canvasRes.canvases.length) {
+      let canvasRes
+      if(!data.items[i].id.includes('http')) {
+        const canvasFilePath = data.items[i].id.replace("canvas-", "")
+        const formData = createFormDataFromFile(canvasFilePath)
+        console.log(formData)
+        const response = await fetch(`http://localhost:8000/uploadfiles/${manifestId}`, {
+          method: 'POST',
+          body: formData,
+          headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+        })
+        canvasRes = await response.json()
+      } 
+      else if(!data.items[i].items[0].items[0].body.id.includes("https://image-tor.canadiana.ca")){
+        console.log({
+          urls : [data.items[i].items[0].items[0].body.id]
+        })
+        //{"detail":"Invalid token: Signature verification failed"}
+        const response = await fetch(`http://localhost:8000/createfilesfromurl/${manifestId}`, {
+          method: 'POST',
+          body: JSON.stringify({
+            urls : [data.items[i].items[0].items[0].body.id]
+          }),
+          headers: {
+            'Authorization': `Bearer ${AUTH_TOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        })
+        canvasRes = await response.json()
+      }
+      if (canvasRes?.canvases?.length) {
         const canvas = canvasRes.canvases[0]
         canvasIndexArray.push({ index: i, canvas })
         // Check if manifest has a valid ID or generate a new one
@@ -153,32 +173,26 @@ const saveImagesToCanvas = async (data, loading, manifestId) => {
           manifestId = modifiedPathname.replace(/^\/|\/$/g, '')
           console.log("manifest id", manifestId)
         }
-      } else {
-        dialog.showErrorBox('Error', `Problem saving image: ${canvasFilePath}`)
-        break
-      }
-    }
+      } 
+    } 
   }
-
-  // Merge canvases into manifest data
+  // Merge any changed canvases into canvas in manifest data
   for (let canvasIndexObj of canvasIndexArray) {
     Object.assign(data.items[canvasIndexObj.index], canvasIndexObj.canvas)
   }
   return manifestId
 }
 
-// Create FormData for the file upload
-const createFormData = (canvasFilePath) => {
+// Create FormData from folder for the file upload
+const createFormDataFromFile = (canvasFilePath) => {
   const file = fs.readFileSync(canvasFilePath)
   const type = mime.lookup(canvasFilePath)
   const fileBlob = new Blob([file], { type })
-
   const formData = new FormData()
   formData.append("files", fileBlob, {
     filename: path.basename(canvasFilePath),
     contentType: 'application/octet-stream'
   })
-
   return formData
 }
 
@@ -186,12 +200,12 @@ const createFormData = (canvasFilePath) => {
 const attachRequiredFiles = (data, manifestId) => {
   let slug
   for (let field of data["metadata"]) { 
-    if(field['label']['en'][0] === "Slug") {
-      slug = field['value']['en'][0]
+    if('en' in field['label'] && 'en' in field['value'] ) {
+      if(field['label']['en'][0] === "Slug") {
+        slug = field['value']['en'][0]
+      }
     }
   }
-  console.log("slug",slug)
-
   data.seeAlso = [{
     id: `https://crkn-canadiana-beta.azurewebsites.net/catalog/${slug}/librarian_view`,
     type: "Dataset",
@@ -213,9 +227,6 @@ const saveManifestToAPI = async (data, manifestId, loading) => {
   loading.webContents.executeJavaScript(`
     document.getElementById('message').innerHTML = 'Saving manifest...';
   `)
-
-  console.log(data)
-
   const response = await fetch(`http://localhost:8000/savemanifest/${manifestId}`, {
     method: 'POST',
     body: JSON.stringify(data),
@@ -247,26 +258,25 @@ const handleCreateManifestFromFolder = async () => {
 app.whenReady().then(() => {
   const store = new Store()
   AUTH_TOKEN = store.get('AUTH_TOKEN')
+  //if (!AUTH_TOKEN) {
+  const authWindow = new BrowserWindow({ webPreferences: { nodeIntegration: false } })
+  const url = new URL("http://localhost:8000/auth/login")
+  authWindow.loadURL(url.toString())
 
-  if (!AUTH_TOKEN) {
-    const authWindow = new BrowserWindow({ webPreferences: { nodeIntegration: false } })
-    const url = new URL("http://localhost:8000/auth/login")
-    authWindow.loadURL(url.toString())
+  authWindow.webContents.on('did-redirect-navigation', () => {
+    session.defaultSession.cookies.get({ name: 'token' })
+      .then(cookies => {
+        if (cookies.length) {
+          store.set('AUTH_TOKEN', cookies[0].value)
+          authWindow.close()
+        }
+      }).catch(console.error)
+  })
 
-    authWindow.webContents.on('did-redirect-navigation', () => {
-      session.defaultSession.cookies.get({ name: 'token' })
-        .then(cookies => {
-          if (cookies.length) {
-            store.set('AUTH_TOKEN', cookies[0].value)
-            authWindow.close()
-          }
-        }).catch(console.error)
-    })
-
-    authWindow.on('closed', createWindow)
-  } else {
+  authWindow.on('closed', createWindow)
+  /*} else {
     createWindow()
-  }
+  }*/
 })
 
 app.on('window-all-closed', () => {

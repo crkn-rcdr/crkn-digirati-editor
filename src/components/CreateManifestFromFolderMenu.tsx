@@ -1,7 +1,7 @@
 //import { useExistingVault } from "react-iiif-vault"
 import { MenuItem } from '@chakra-ui/react'
 
-export function CreateManifestFromFolder() {
+export function CreateManifestFromFolderMenu() {
   //const vault = useExistingVault()
 
   let onSelectPress = () => {
@@ -25,8 +25,8 @@ export function CreateManifestFromFolder() {
   return (
       <MenuItem
         onClick={onSelectPress}
-        title="Create New Project from Folder">
-          Create New Project from Folder
+        title="Create New Manifest from Folder">
+          Create New Manifest from Folder
       </MenuItem>
   )
 }

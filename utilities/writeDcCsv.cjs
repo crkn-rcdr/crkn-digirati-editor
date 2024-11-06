@@ -35,14 +35,16 @@ module.exports = function writeDcCsv(manifest) {
         let altTitle = ''
         for(let fieldTitle in manifestFieldsForDCMap){
             for (let field of manifest["metadata"]) { // Will handle if deleted from manifest well
-                if(field['label']['en'][0] === fieldTitle) {
-                    if(fieldTitle === "Alternate Title"){
-                        altTitle = field['value']['en'] // this is the only field that creates a duplicate
-                    } else {
-                        // The rest get concatenated
-                        if(dcObj[manifestFieldsForDCMap[fieldTitle]].length)
-                            dcObj[manifestFieldsForDCMap[fieldTitle]] += " " + field['value']['en'][0]
-                        else dcObj[manifestFieldsForDCMap[fieldTitle]] = field['value']['en'][0]
+                if('en' in field['label'] && 'en' in field['value'] ) {
+                    if(field['label']['en'][0] === fieldTitle) {
+                        if(fieldTitle === "Alternate Title"){
+                            altTitle = field['value']['en'] // this is the only field that creates a duplicate
+                        } else {
+                            // The rest get concatenated
+                            if(dcObj[manifestFieldsForDCMap[fieldTitle]].length)
+                                dcObj[manifestFieldsForDCMap[fieldTitle]] += " " + field['value']['en'][0]
+                            else dcObj[manifestFieldsForDCMap[fieldTitle]] = field['value']['en'][0]
+                        }
                     }
                 }
             }

@@ -6,10 +6,10 @@ import { VaultProvider } from "react-iiif-vault"
 import { Vault } from "@iiif/helpers/vault"
 import { useEffect, useState } from "react"
 import { Button, ChakraProvider } from '@chakra-ui/react'
-import { OpenManifestFromURL } from "./components/OpenManifestFromURL"
-import { CreateManifestFromFolder } from "./components/CreateManifestFromFolder"
+import { OpenManifestFromURLMenu } from "./components/OpenManifestFromURLMenu"
+import { CreateManifestFromFolderMenu } from "./components/CreateManifestFromFolderMenu"
 //import { WriteManifestToFileSystem } from "./components/WriteManifestToFileSystem"
-import { PublishManifestToAPI } from "./components/PublishManifestToAPI"
+import { PublishManifestToAPIMenu } from "./components/PublishManifestToAPIMenu"
 import { ChevronDownIcon} from '@chakra-ui/icons'
 import {
   Menu,
@@ -60,18 +60,11 @@ function App() {
                         Open
                       </MenuButton>
                       <MenuList>
-                        <CreateManifestFromFolder/>
-                        <OpenManifestFromURL/>
+                        <CreateManifestFromFolderMenu/>
+                        <OpenManifestFromURLMenu/>
                       </MenuList>
                     </Menu>
-                    <Menu>
-                      <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-                        Save
-                      </MenuButton>
-                      <MenuList>
-                        <PublishManifestToAPI/>
-                      </MenuList>
-                    </Menu>
+                    <PublishManifestToAPIMenu/>
                   </div>
                 </ChakraProvider>
                 <ManifestEditor resource={{ id: data['id'], type: "Manifest" }} data={data as any}/>
@@ -85,8 +78,8 @@ function App() {
                     Open
                   </MenuButton>
                   <MenuList>
-                    <CreateManifestFromFolder/>
-                    <OpenManifestFromURL/>
+                    <CreateManifestFromFolderMenu/>
+                    <OpenManifestFromURLMenu/>
                   </MenuList>
                 </Menu>
               </div>
