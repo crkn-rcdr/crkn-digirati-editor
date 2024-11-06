@@ -72,8 +72,8 @@ const handlePushManifest = async (event, data) => {
   }
   catch (e) {
     dialog.showErrorBox('Error', e.message)
+    return { result: {success: false, message: e.message }, data }
   }
-  return { result: null, data }
 }
 
 // Format the ID for the API
@@ -238,7 +238,9 @@ const saveImagesToCanvas = async (data, loading, manifestId) => {
       if (canvasRes?.canvases?.length) {
         const canvas = canvasRes.canvases[0]
         canvasIndexArray.push({ index: i, canvas })
-      } 
+      } else {
+        throw `Could not save canvas: ${data.items[i].id}`
+      }
     } 
   }
   // Merge any changed canvases into canvas in manifest data
@@ -249,7 +251,7 @@ const saveImagesToCanvas = async (data, loading, manifestId) => {
 }
 
 const getNewManifestId = async () => {
-  const response = await fetch(`http://localhost:8000/newid`)
+  const response = await fetch(`${editorApiUrl}/newid`)
   const obj = await response.json()
   return obj.id
 }
@@ -285,7 +287,7 @@ const attachRequiredFiles = (data, manifestId) => {
     profile: "https://www.loc.gov/marc/"
   }]
   data.rendering = [{
-    id: `http://localhost:8000/pdf/${manifestId}`,
+    id: `${editorApiUrl}/pdf/${manifestId}`,
     type: "Text",
     label: { en: ["PDF version"] },
     format: "application/pdf"
@@ -297,7 +299,7 @@ const saveManifestToAPI = async (data, manifestId, loading) => {
   loading.webContents.executeJavaScript(`
     document.getElementById('message').innerHTML = 'Saving manifest...';
   `)
-  const response = await fetch(`http://localhost:8000/savemanifest/${manifestId}`, {
+  const response = await fetch(`${editorApiUrl}/savemanifest/${manifestId}`, {
     method: 'POST',
     body: JSON.stringify(data),
     headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
@@ -330,7 +332,7 @@ app.whenReady().then(() => {
   AUTH_TOKEN = store.get('AUTH_TOKEN')
   //if (!AUTH_TOKEN) {
   const authWindow = new BrowserWindow({ webPreferences: { nodeIntegration: false } })
-  const url = new URL("http://localhost:8000/auth/login")
+  const url = new URL(`${editorApiUrl}/auth/login`)
   authWindow.loadURL(url.toString())
 
   authWindow.webContents.on('did-redirect-navigation', () => {
