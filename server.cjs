@@ -29,6 +29,15 @@ const createWindow = () => {
   win.loadFile(path.join(__dirname, '/dist/index.html'))
 }
 
+// Handle creation of manifest from folder
+const handleCreateManifestFromFolder = async () => {
+  const handler = await dialog.showOpenDialog({ properties: ['openDirectory'] })
+  if (!handler.filePaths[0]) return
+  const folderPath = handler.filePaths[0].replace(/\\/g, '/')
+  return getManifest(folderPath, null)
+}
+
+// TODO: move to own file
 // Handle manifest push to APIs
 const handlePushManifest = async (event, data) => {
   try {
@@ -316,14 +325,6 @@ const saveManifestToAPI = async (data, manifestId, loading) => {
       document.getElementById('message').innerHTML = '${manifestRes.message}';
     `)
   }
-}
-
-// Handle creation of manifest from folder
-const handleCreateManifestFromFolder = async () => {
-  const handler = await dialog.showOpenDialog({ properties: ['openDirectory'] })
-  if (!handler.filePaths[0]) return
-  const folderPath = handler.filePaths[0].replace(/\\/g, '/')
-  return getManifest(folderPath, null)
 }
 
 // Initialize the app
