@@ -368,4 +368,4 @@ module.exports = {
     getManifestItem,
     getManifestItems,
     getManifest
-};
+}
