@@ -11,6 +11,11 @@ This app depends on the following microservice for saving content to the access 
 - [CRKN Asset Manager](https://github.com/crkn-rcdr/crkn-asset-manager)
 
 # Electron Desktop App 
+Remember to download the dependancies:
+```
+npm install
+```
+
 To run the desktop app for development, run this command:
 ```
 npm run start
