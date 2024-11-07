@@ -5,7 +5,11 @@ In this repo:
 - CRKN has been able to use Digirati's [published manifest editor NPM modules](https://www.npmjs.com/package/manifest-editor) to integrate IIIF into their digitization workflow at the earliest and most convenient stages possible for staff. ​
 - By wrapping Digirati's manifest editor react components within an electron desktop application, our non-technical digitizaters can create and edit manifests directly from folders of images on their computer. ​
 - Our developers were also able to take advantage of the digirati editor's out of the box functionality which let CRKN staff open items on the internet archive, or existing content in the CRKN collections. ​
-- We were easily able to create a button for saving content to our IIIF API and image Object storage for permanent storage and display. 
+- We were easily able to create a button for saving content to our IIIF API and image Object storage for permanent storage and display.
+
+This app depends on the following microservices:
+https://github.com/crkn-rcdr/crkn-asset-manager
+https://github.com/crkn-rcdr/crkn-IIIF-presentation-api
 
 # Electron Desktop App 
 To run the desktop app for development, run this command:
