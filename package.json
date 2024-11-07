@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "main": "server.cjs",
   "description": "A desktop app for CRKN's adoption of the Digirati Manifest Editor",
-  "author": "Brittny Lspierre",
+  "author": "Brittny Lapierre",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build --base=./",
@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make"
+    "make": "electron-forge make",
+    "publish": "electron-forge publish"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.1.1",
