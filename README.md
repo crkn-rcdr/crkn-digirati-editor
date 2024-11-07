@@ -7,9 +7,8 @@ In this repo:
 - Our developers were also able to take advantage of the digirati editor's out of the box functionality which let CRKN staff open items on the internet archive, or existing content in the CRKN collections. ​
 - We were easily able to create a button for saving content to our IIIF API and image Object storage for permanent storage and display.
 
-This app depends on the following microservices:
-https://github.com/crkn-rcdr/crkn-asset-manager
-https://github.com/crkn-rcdr/crkn-IIIF-presentation-api
+This app depends on the following microservice for saving content to the access platform storage:
+- [CRKN Asset Manager](https://github.com/crkn-rcdr/crkn-asset-manager)
 
 # Electron Desktop App 
 To run the desktop app for development, run this command:
