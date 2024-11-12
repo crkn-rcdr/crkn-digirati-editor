@@ -42,10 +42,11 @@ const handlePushManifest = async (event, data) => {
   const loadingWindow = new BrowserWindow()
   try {
     loadingWindow.loadFile('saving.html')
-    const result = writeDcCsv(data)
+    const result = writeDcCsv(data) // TODO: Move this to own menu item
     if (!result.success) {
       throw new Error(result.message)
     }
+    //const result = { success: true, message: "not doing for testing"}
     data = await pushManifest(data, loadingWindow, AUTH_TOKEN)
     return { result, data }
   } catch (e) {

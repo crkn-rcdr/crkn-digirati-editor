@@ -1,5 +1,5 @@
 const fs = require('fs')
-const dcCachePath = 'C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/dcxml/newDcRecords.txt'
+const dcCachePath = 'C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/dcxml/newDcRecords.tsv'
 /*
 For mapping see:
 https://docs.google.com/spreadsheets/d/1jya9WBezTJb3HZlRkiwdvg38Exm52THQ/edit?pli=1&gid=1762592894#gid=1762592894
@@ -88,7 +88,7 @@ module.exports = function writeDcCsv(manifest) {
             "",
             ""
         ]
-        let rowString = rowValues.join("*") + "\n"
+        let rowString = rowValues.join("\t") + "\n"
         let dcCache = fs.readFileSync(dcCachePath, 'utf-8')
         fs.writeFileSync(dcCachePath , dcCache + rowString, "utf-8")
         return { success: true, message: 'Created DC record' }

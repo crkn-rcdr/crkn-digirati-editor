@@ -5,7 +5,7 @@ const presentationApiUrl = 'https://crkn-iiif-presentation-api.azurewebsites.net
 const editorApiUrl = 'http://localhost:8000'
 const imageApiUrl = 'https://image-tor.canadiana.ca'
 let AUTH_TOKEN
-// TODO: move to own file
+
 // Handle manifest push to APIs
 const pushManifest = async (data, loadingWindow, NEW_AUTH_TOKEN) => {
     AUTH_TOKEN = NEW_AUTH_TOKEN
