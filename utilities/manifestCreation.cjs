@@ -44,9 +44,9 @@ let getManifestItems = (files) => {
     }
     return manifestItems
 }
-let getManifest = (projectPath, manifestCache) => {
+let createManifest = (projectPath, manifestCache) => {
     let files = getFolderContentsArray(projectPath) //pathToWIP + 
-    const manifestId = "Digitization Project" ///+ path.basename(projectPath)
+    const manifestId = path.basename(projectPath)
     let manifest = {
       "@context": "http://iiif.io/api/presentation/3/context.json",
       "type" : "Manifest",
@@ -367,5 +367,5 @@ let getManifest = (projectPath, manifestCache) => {
 module.exports = {
     getManifestItem,
     getManifestItems,
-    getManifest
+    createManifest
 }

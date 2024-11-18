@@ -10,6 +10,9 @@ interface IElectronAPI {
   electron: () => string,
   createManifestFromFolder: () => Promise<any>,
   pushManifestToApis: (data:any) => Promise<any>,
+  setManifestLocally: (data:any) => Promise<any>,
+  getManifestLocally: (id:any) => Promise<any>,
+  listManifestLocally: () => Promise<any>,
   triggerLegacyIngest: (slug:any) => Promise<any>
 }
 declare global {

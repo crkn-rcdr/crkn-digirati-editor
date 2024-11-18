@@ -8,7 +8,8 @@ import { useEffect, useState } from "react"
 import { Button, ChakraProvider } from '@chakra-ui/react'
 import { OpenManifestFromURLMenu } from "./components/OpenManifestFromURLMenu"
 import { CreateManifestFromFolderMenu } from "./components/CreateManifestFromFolderMenu"
-//import { WriteManifestToFileSystem } from "./components/WriteManifestToFileSystem"
+import { OpenLocalManifestMenu } from "./components/OpenLocalManifestMenu"
+import { SaveManifestLocalyMenu } from "./components/SaveManifestLocalyMenu"
 import { PublishManifestToAPIMenu } from "./components/PublishManifestToAPIMenu"
 import { ChevronDownIcon} from '@chakra-ui/icons'
 import {
@@ -16,8 +17,6 @@ import {
   MenuButton,
   MenuList
 } from '@chakra-ui/react'
-//import { ReadManifestFromFileSystem } from "./components/ReadManifestFromFileSystem"
-
 
 function App() {
   const vault = new Vault()
@@ -62,8 +61,10 @@ function App() {
                       <MenuList>
                         <CreateManifestFromFolderMenu/>
                         <OpenManifestFromURLMenu/>
+                        <OpenLocalManifestMenu/>
                       </MenuList>
                     </Menu>
+                    <SaveManifestLocalyMenu/>
                     <PublishManifestToAPIMenu/>
                   </div>
                 </ChakraProvider>
@@ -80,6 +81,7 @@ function App() {
                   <MenuList>
                     <CreateManifestFromFolderMenu/>
                     <OpenManifestFromURLMenu/>
+                    <OpenLocalManifestMenu/>
                   </MenuList>
                 </Menu>
               </div>
@@ -89,36 +91,3 @@ function App() {
     )
 }
 export default App
-
-/*<Menu>
-  <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-    Tools
-  </MenuButton>
-  <MenuList>
-    <ReadManifestFromFileSystem label="Read Images from Folder"/>
-    <WriteManifestToFileSystem label="Write Images to Folder"/>
-  </MenuList>
-</Menu>*/
-
-/*const saveVault = useCallback(() => {
-    const vaultData = vault.toPresentation3({ id: manifestId, type: 'Manifest' })
-    if(typeof vaultData !== "undefined" && vaultData !== "__$UNSET$__" && vaultData !== null) {
-      localStorage.setItem(manifestId, JSON.stringify(vaultData))
-    } else {
-      console.log("Vault data undefined, nothing to save.")
-    }    
-  }, [])
-  useSaveVault(
-    vault,
-    saveVault,
-    5000
-  )
-  useEffect(() => {
-    const localDataText = localStorage.getItem(manifestId)
-    if(typeof localDataText === "string" && localDataText !== "__$UNSET$__") {
-      console.log('Loading from local store')
-      const localData = JSON.parse(localDataText)
-      setData(localData as any)
-    }
-  }, [])*/
- 
