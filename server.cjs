@@ -58,7 +58,7 @@ const handlePushManifest = async (event, data) => {
     dialog.showErrorBox('Error', e.message)
     return { result: { success: false, message: e.message }, data }
   } finally {
-    loadingWindow.close()
+    //loadingWindow.close()
   }
 }
 

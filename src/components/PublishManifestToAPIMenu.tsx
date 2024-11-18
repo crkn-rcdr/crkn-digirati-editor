@@ -14,11 +14,6 @@ export function PublishManifestToAPIMenu() {
         .then ( saveRes => { // {result, data}
           try {
             console.log("Result", saveRes['data'])
-            if(saveRes.result.success) {
-              //localStorage.setItem("manifest-data", JSON.stringify(saveRes.data))
-              //localStorage.setItem("manifest-id", saveRes.data.id)
-              //window.location.reload()
-            }
           } catch (e) {
             console.log("error pushing to api.")
           }

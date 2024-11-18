@@ -9,6 +9,8 @@ let AUTH_TOKEN
 // Handle manifest push to APIs
 const pushManifest = async (data, loadingWindow, NEW_AUTH_TOKEN) => {
     AUTH_TOKEN = NEW_AUTH_TOKEN
+
+    const originalId = data['id']
     data = cleanManifestId(data)
     data = cleanManifestMetadata(data)
 
@@ -22,7 +24,7 @@ const pushManifest = async (data, loadingWindow, NEW_AUTH_TOKEN) => {
 
     console.log("Handle saving images")
     // Handle saving images
-    await saveImagesToCanvas(data, loadingWindow, manifestId)
+    await saveImagesToCanvas(data, loadingWindow, manifestId, originalId)
 
     console.log("Attach required files to manifest")
     // Attach required files to manifest
@@ -31,7 +33,7 @@ const pushManifest = async (data, loadingWindow, NEW_AUTH_TOKEN) => {
     console.log("Save the manifest to the API")
     fs.writeFileSync("manifest.json", JSON.stringify(data))
     // Save the manifest to the API
-    await saveManifestToAPI(data, manifestId, loadingWindow)
+    await saveManifestToAPI(data, manifestId, loadingWindow, originalId)
 
     return data
 }
@@ -108,13 +110,14 @@ function extractCanvasNoid(url) {
 }
   
 // Save images to canvas
-const saveImagesToCanvas = async (data, loadingWindow, manifestId) => {
+const saveImagesToCanvas = async (data, loadingWindow, manifestId, originalId) => {
     let canvasIndexArray = []
     for (let i = 0; i < data.items.length; i++) {
       // Only process local files and non-crkn images
       if (!data.items[i].id.includes(presentationApiUrl)) {
         loadingWindow.webContents.executeJavaScript(`
-          document.getElementById('message').innerHTML = 'Saving image ${i + 1} of ${data.items.length}...';
+          document.getElementById('title').innerHTML = 'Pushing Manifest: ${originalId}';
+          document.getElementById('message').innerHTML = 'While you wait, feel free to go back to the main menu and work on another manifest.<br/>Saving image ${i + 1} of ${data.items.length}...';
         `)
         let canvasRes
         if(!data.items[i].id.includes('http')) {
@@ -255,9 +258,9 @@ const attachRequiredFiles = (data, manifestId) => {
 }
   
 // Save the manifest to the API
-const saveManifestToAPI = async (data, manifestId, loadingWindow) => {
+const saveManifestToAPI = async (data, manifestId, loadingWindow, originalId) => {
     loadingWindow.webContents.executeJavaScript(`
-        document.getElementById('message').innerHTML = 'Saving manifest...';
+        document.getElementById('message').innerHTML = 'While you wait, feel free to go back to the main menu and work on another manifest.<br/>Saving manifest...';
     `)
     const response = await fetch(`${editorApiUrl}/savemanifest/${manifestId}`, {
       method: 'POST',
@@ -267,12 +270,12 @@ const saveManifestToAPI = async (data, manifestId, loadingWindow) => {
     const manifestRes = await response.json()
     if (manifestRes.success) {
         loadingWindow.webContents.executeJavaScript(`
-            document.getElementById('title').innerHTML = 'Success';
-            document.getElementById('message').innerHTML = 'Your manifest has been saved to the API.';
+            document.getElementById('title').innerHTML = '${originalId} - Success';
+            document.getElementById('message').innerHTML = ' Your manifest has been saved to the API. You can now access it using the following url: ${presentationApiUrl}/manifest/${manifestId} But for now, you must complete the import into access step at https://access.canadiana.ca before your images will load.';
         `)
     } else {
         loadingWindow.webContents.executeJavaScript(`
-            document.getElementById('title').innerHTML = 'Error';
+            document.getElementById('title').innerHTML = '${originalId} - Error';
             document.getElementById('message').innerHTML = '${manifestRes.message}';
         `)
     }

@@ -30,6 +30,7 @@ function App() {
         console.log("storedddd", manifest)
         setData(storedData as any)
       } catch(e) {
+        localStorage.clear()
         console.log(e)
       }
     }
@@ -46,6 +47,7 @@ function App() {
       }
     } catch (e) {
       console.log(e)
+      localStorage.clear()
     }
   }, true)
     return (
