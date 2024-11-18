@@ -260,7 +260,7 @@ const attachRequiredFiles = (data, manifestId) => {
 // Save the manifest to the API
 const saveManifestToAPI = async (data, manifestId, loadingWindow, originalId) => {
     loadingWindow.webContents.executeJavaScript(`
-        document.getElementById('message').innerHTML = 'While you wait, feel free to go back to the main menu and work on another manifest.<br/>Saving manifest...';
+        document.getElementById('message').innerHTML = 'While you wait, feel free to go back to the main window and work on another manifest.<br/>Saving manifest...';
     `)
     const response = await fetch(`${editorApiUrl}/savemanifest/${manifestId}`, {
       method: 'POST',
