@@ -124,7 +124,7 @@ const saveImagesToCanvas = async (data, loadingWindow, manifestId, originalId) =
           const canvasFilePath = data.items[i].id.replace("canvas-", "")
           const formData = createFormDataFromFile(canvasFilePath)
           console.log(formData)
-          const response = await fetch(`${editorApiUrl}/uploadfiles/${manifestId}`, {
+          const response = await fetch(`${editorApiUrl}/uploadfiles/${manifestId}/${i+1}`, {
             method: 'POST',
             body: formData,
             headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
@@ -135,7 +135,7 @@ const saveImagesToCanvas = async (data, loadingWindow, manifestId, originalId) =
           console.log({
             urls : [data.items[i].items[0].items[0].body.id]
           })
-          const response = await fetch(`${editorApiUrl}/createfilesfromurl/${manifestId}`, {
+          const response = await fetch(`${editorApiUrl}/createfilesfromurl/${manifestId}/${i+1}`, {
             method: 'POST',
             body: JSON.stringify({
               urls : [data.items[i].items[0].items[0].body.id]
