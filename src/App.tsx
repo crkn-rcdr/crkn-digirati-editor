@@ -29,6 +29,7 @@ function App() {
         let storedData = JSON.parse(manifest)
         console.log("storedddd", manifest)
         setData(storedData as any)
+        localStorage.removeItem('manifest-data') // So that window close starts you afresh
       } catch(e) {
         localStorage.clear()
         console.log(e)

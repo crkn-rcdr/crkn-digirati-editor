@@ -10,7 +10,8 @@ let AUTH_TOKEN
 const pushManifest = async (data, loadingWindow, NEW_AUTH_TOKEN) => {
     AUTH_TOKEN = NEW_AUTH_TOKEN
 
-    const originalId = data['id']
+    const originalId = data['id'].includes("https") ? new URL(data['id']).pathname : data['id'] // using to display to user
+
     data = cleanManifestId(data)
     data = cleanManifestMetadata(data)
 
@@ -31,7 +32,7 @@ const pushManifest = async (data, loadingWindow, NEW_AUTH_TOKEN) => {
     attachRequiredFiles(data, manifestId)
 
     console.log("Save the manifest to the API")
-    fs.writeFileSync("manifest.json", JSON.stringify(data))
+    //fs.writeFileSync("manifest.json", JSON.stringify(data))
     // Save the manifest to the API
     await saveManifestToAPI(data, manifestId, loadingWindow, originalId)
 
@@ -113,98 +114,100 @@ function extractCanvasNoid(url) {
 const saveImagesToCanvas = async (data, loadingWindow, manifestId, originalId) => {
     let canvasIndexArray = []
     for (let i = 0; i < data.items.length; i++) {
-      // Only process local files and non-crkn images
-      if (!data.items[i].id.includes(presentationApiUrl)) {
-        loadingWindow.webContents.executeJavaScript(`
-          document.getElementById('title').innerHTML = 'Pushing Manifest: ${originalId}';
-          document.getElementById('message').innerHTML = 'While you wait, feel free to go back to the main menu and work on another manifest.<br/>Saving image ${i + 1} of ${data.items.length}...';
-        `)
-        let canvasRes
-        if(!data.items[i].id.includes('http')) {
-          const canvasFilePath = data.items[i].id.replace("canvas-", "")
-          const formData = createFormDataFromFile(canvasFilePath)
-          console.log(formData)
-          const response = await fetch(`${editorApiUrl}/uploadfiles/${manifestId}/${i+1}`, {
-            method: 'POST',
-            body: formData,
-            headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
-          })
-          canvasRes = await response.json()
-        } 
-        else if(!data.items[i].items[0].items[0].body.id.includes(imageApiUrl)){
-          console.log({
-            urls : [data.items[i].items[0].items[0].body.id]
-          })
-          const response = await fetch(`${editorApiUrl}/createfilesfromurl/${manifestId}/${i+1}`, {
-            method: 'POST',
-            body: JSON.stringify({
-              urls : [data.items[i].items[0].items[0].body.id]
-            }),
-            headers: {
-              'Authorization': `Bearer ${AUTH_TOKEN}`,
-              'Content-Type': 'application/json'
-            }
-          })
-          canvasRes = await response.json()
-        } else {
-          // https://image-tor.canadiana.ca/iiif/2/69429%2Fc07p8tb10n4j/full/max/0/default.jpg
-          const canvasNoid = extractCanvasNoid(data.items[i].items[0].items[0].body.id)
-          const encodedCanvasNoid = canvasNoid.replace("/", "%2F")
-          const width = data.items[i].width
-          const height = data.items[i].height
-          canvasRes = { canvases : [{
-            "id": `${presentationApiUrl}/canvas/${canvasNoid}`,
-            "width": width,
-            "height": height,
-            "thumbnail": [{
-              "id": `${imageApiUrl}/iiif/2/${encodedCanvasNoid}/full/max/0/default.jpg`,
-              "type": "Image",
-              "format": "image/jpeg"
-            }],
-            "items": [{
-              "id": `${presentationApiUrl}/${manifestId}/annotationpage/${canvasNoid}/main`,
-              "type": "AnnotationPage",
-              "items": [{
-                "id": `${presentationApiUrl}/${manifestId}/annotation/${canvasNoid}/main/image`,
-                "body": {
-                  "id": `${imageApiUrl}/iiif/2/${encodedCanvasNoid}/full/max/0/default.jpg`,
-                  "type": "Image",
-                  "width": width,
-                  "height": height,
-                  "format": "image/jpeg",
-                  "service": [{
-                    "id": `${imageApiUrl}/iiif/2/${encodedCanvasNoid}`,
-                    "type": "ImageService2",
-                    "profile": "level2"
-                  }]
-                },
-                "type": "Annotation",
-                "target": `${presentationApiUrl}/canvas/${canvasNoid}`,
-                "motivation": "painting"
-              }]
-            }],
-            "seeAlso": [{
-              "id": `${editorApiUrl}/ocr/${canvasNoid}`,
-              "type": "Dataset",
-              "label": {"en": ["Optical Character Recognition text in XML"]},
-              "format": "text/xml",
-              "profile": "http://www.loc.gov/standards/alto"
-            }],
-            "rendering": [{
-              "id": `${editorApiUrl}/pdf/${canvasNoid}`,
-              "type": "Text",
-              "label": {"en": ["PDF version"]},
-              "format": "application/pdf"
-            }]
-          }]}
-        }
-        if (canvasRes?.canvases?.length) {
-          const canvas = canvasRes.canvases[0]
-          canvasIndexArray.push({ index: i, canvas })
-        } else {
-          throw `Could not save canvas: ${data.items[i].id}`
-        }
+      
+      //if (!data.items[i].id.includes(presentationApiUrl)) { 
+      loadingWindow.webContents.executeJavaScript(`
+        document.getElementById('title').innerHTML = 'Pushing Manifest: ${originalId}';
+        document.getElementById('message').innerHTML = 'While you wait, feel free to go back to the main menu and work on another manifest.<br/>Saving image ${i + 1} of ${data.items.length}...';
+      `)
+
+      // Only add local files and non-crkn images to swift - or if old manifest url just format
+      let canvasRes
+      if(!data.items[i].id.includes('http')) { // If a local image
+        const canvasFilePath = data.items[i].items[0].items[0].body.id//data.items[i].id.replace("canvas-", "")
+        const formData = createFormDataFromFile(canvasFilePath)
+        console.log(formData)
+        const response = await fetch(`${editorApiUrl}/uploadfiles/${manifestId}/${i+1}`, {
+          method: 'POST',
+          body: formData,
+          headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+        })
+        canvasRes = await response.json()
       } 
+      else if(!data.items[i].items[0].items[0].body.id.includes(imageApiUrl)){ // If external non-crkn image
+        console.log({
+          urls : [data.items[i].items[0].items[0].body.id]
+        })
+        const response = await fetch(`${editorApiUrl}/createfilesfromurl/${manifestId}/${i+1}`, {
+          method: 'POST',
+          body: JSON.stringify({
+            urls : [data.items[i].items[0].items[0].body.id]
+          }),
+          headers: {
+            'Authorization': `Bearer ${AUTH_TOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        })
+        canvasRes = await response.json()
+      } else if (!data.items[i].id.includes(presentationApiUrl)) {  // If existing CRKN image but not new API canvas
+        // No need to upload, just configure for the new API format
+        const canvasNoid = extractCanvasNoid(data.items[i].items[0].items[0].body.id)
+        const encodedCanvasNoid = canvasNoid.replace("/", "%2F")
+        const width = data.items[i].width
+        const height = data.items[i].height
+        canvasRes = { canvases : [{
+          "id": `${presentationApiUrl}/canvas/${canvasNoid}`,
+          "width": width,
+          "height": height,
+          "thumbnail": [{
+            "id": `${imageApiUrl}/iiif/2/${encodedCanvasNoid}/full/max/0/default.jpg`,
+            "type": "Image",
+            "format": "image/jpeg"
+          }],
+          "items": [{
+            "id": `${presentationApiUrl}/${manifestId}/annotationpage/${canvasNoid}/main`,
+            "type": "AnnotationPage",
+            "items": [{
+              "id": `${presentationApiUrl}/${manifestId}/annotation/${canvasNoid}/main/image`,
+              "body": {
+                "id": `${imageApiUrl}/iiif/2/${encodedCanvasNoid}/full/max/0/default.jpg`,
+                "type": "Image",
+                "width": width,
+                "height": height,
+                "format": "image/jpeg",
+                "service": [{
+                  "id": `${imageApiUrl}/iiif/2/${encodedCanvasNoid}`,
+                  "type": "ImageService2",
+                  "profile": "level2"
+                }]
+              },
+              "type": "Annotation",
+              "target": `${presentationApiUrl}/canvas/${canvasNoid}`,
+              "motivation": "painting"
+            }]
+          }],
+          "seeAlso": [{
+            "id": `${editorApiUrl}/ocr/${canvasNoid}`,
+            "type": "Dataset",
+            "label": {"en": ["Optical Character Recognition text in XML"]},
+            "format": "text/xml",
+            "profile": "http://www.loc.gov/standards/alto"
+          }],
+          "rendering": [{
+            "id": `${editorApiUrl}/pdf/${canvasNoid}`,
+            "type": "Text",
+            "label": {"en": ["PDF version"]},
+            "format": "application/pdf"
+          }]
+        }]}
+      }
+      if (canvasRes?.canvases?.length) {
+        const canvas = canvasRes.canvases[0]
+        canvasIndexArray.push({ index: i, canvas })
+      } else {
+        throw `Could not save canvas: ${data.items[i].id}`
+      }
+      //}
     }
     // Merge any changed canvases into canvas in manifest data
     for (let canvasIndexObj of canvasIndexArray) {
