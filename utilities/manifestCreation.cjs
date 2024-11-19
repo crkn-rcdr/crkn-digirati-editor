@@ -1,8 +1,21 @@
 const path = require('path')
 const getFolderContentsArray = require('./getFolderContentsArray.cjs')
 const sizeOf = require("image-size")
-const fs = require('fs')
-
+//const fs = require('fs')
+/**
+            "InMagic Identifier" : "objid",
+            "CIHM Identifier" : "dc:identifier",
+            "Alternate Title" : "dc:title", //(must be the second title column in the record)
+            "Volume/Issue" : "dc:title", //(we concatenate this field with the main title field)
+            "Issue Date" : "dc:date",
+            "Coverage Date" : "dc:coverage",
+            "Language" : "dc:language",
+            "Place of Publication" : "dc:publisher",
+            "Publisher" : "dc:publisher",
+            "Publication Date" : "dc:publisher",
+            "Local Note" : "dc:description",
+            "Source" : "dc:source"
+ */
 let getManifestItem = (filePath, position) => {
     let canvas = { }
     let annotPage = { }
@@ -65,6 +78,18 @@ let createManifest = (projectPath, manifestCache) => {
         {
           "label": {
             "en": [
+              "Slug"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add a slug"
+            ]
+          }
+        },
+        /*{
+          "label": {
+            "en": [
               "Accessibility Summary"
             ]
           },
@@ -118,22 +143,10 @@ let createManifest = (projectPath, manifestCache) => {
           },
           "value": {
             "en": [
-              "Add depositor (University of Alberta, Rutherford Library | Shortgrass Public Library System | Canadian Association of Research Libraries | Musicworks Society of Ontario Inc. | Numeris | Mississauga Library System | Canadiana.org | Department of Foreign Affairs Trade and Development | Canadian Hazards Information Service | Library of Parliament | South Mountain | McGill University Archives | University of Regina Archives | Simon Fraser University)"
+              "Add depositor (Canadian Research Knowledge Network | University of Alberta, Rutherford Library | Shortgrass Public Library System | Canadian Association of Research Libraries | Musicworks Society of Ontario Inc. | Numeris | Mississauga Library System | Canadiana.org | Department of Foreign Affairs Trade and Development | Canadian Hazards Information Service | Library of Parliament | South Mountain | McGill University Archives | University of Regina Archives | Simon Fraser University)"
             ]
           }
-        },
-        {
-          "label": {
-            "en": [
-              "Slug"
-            ]
-          },
-          "value": {
-            "en": [
-              "Add a slug"
-            ]
-          }
-        },
+        },*/
         {
           "label": {
             "en": [
@@ -283,6 +296,18 @@ let createManifest = (projectPath, manifestCache) => {
         {
           "label": {
             "en": [
+              "Source"
+            ]
+          },
+          "value": {
+            "en": [
+              "Add source"
+            ]
+          }
+        }
+        /*{
+          "label": {
+            "en": [
               "Number of Pages"
             ]
           },
@@ -331,18 +356,6 @@ let createManifest = (projectPath, manifestCache) => {
         {
           "label": {
             "en": [
-              "Source"
-            ]
-          },
-          "value": {
-            "en": [
-              "Add source"
-            ]
-          }
-        },
-        {
-          "label": {
-            "en": [
               "Scan Date"
             ]
           },
@@ -351,7 +364,7 @@ let createManifest = (projectPath, manifestCache) => {
               "Add scan date"
             ]
           }
-        }
+        }*/
       ],
       "items": []
     }

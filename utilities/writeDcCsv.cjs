@@ -68,7 +68,7 @@ module.exports = function writeDcCsv(manifest) {
             "dc:rights"
         ]
         if(!fs.existsSync(dcCachePath)) {
-            let header = rowTitles.join("*") + "\n"
+            let header = rowTitles.join("\t") + "\n"
             fs.writeFileSync(dcCachePath , header , "utf-8")
         }
         // add row data

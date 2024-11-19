@@ -13,8 +13,7 @@ let getManifest = (id) => {
 
 let listManifest = () => {
     const all = Object.keys(store.store)
-    console.log("all", all)
-    return all
+    return all.reverse()
 }
 
 module.exports = {
