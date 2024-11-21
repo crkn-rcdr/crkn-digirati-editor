@@ -59,7 +59,7 @@ let getManifestItems = (files) => {
 }
 let createManifest = (projectPath, manifestCache) => {
     let files = getFolderContentsArray(projectPath) //pathToWIP + 
-    const manifestId = path.basename(projectPath)
+    const manifestId = path.basename(projectPath) // TODO: cuts off '.'
     let manifest = {
       "@context": "http://iiif.io/api/presentation/3/context.json",
       "type" : "Manifest",
