@@ -40,7 +40,7 @@ const pushManifest = async (data, loadingWindow, NEW_AUTH_TOKEN) => {
     attachRequiredFiles(data, manifestId, slug)
 
     console.log("Save the manifest to the API")
-    //fs.writeFileSync("manifest.json", JSON.stringify(data))
+    fs.writeFileSync("manifest.json", JSON.stringify(data))
     // Save the manifest to the API
     await saveManifestToAPI(data, manifestId, loadingWindow, originalId, slug)
 
@@ -209,7 +209,9 @@ const saveImagesToCanvas = async (data, loadingWindow, manifestId, originalId) =
       }
       if (canvasRes) { // if defined, we did something to a canvas
         if (canvasRes.canvases?.length) {
-          const canvas = canvasRes.canvases[0]
+          let canvas = canvasRes.canvases[0]
+          console.log("canvas", canvas)
+          data.items[i] = formatAnnotations(data.items[i], canvas["id"])
           canvasIndexArray.push({ index: i, canvas })
         } else {
           throw new Error(`Could not save canvas: ${data.items[i].id}`)
@@ -221,6 +223,72 @@ const saveImagesToCanvas = async (data, loadingWindow, manifestId, originalId) =
       Object.assign(data.items[canvasIndexObj.index], canvasIndexObj.canvas)
     }
     return manifestId
+}
+
+const extractAnnotationId = (originalId) => {
+  // Regular expression to match /annotations/<alphanumeric_string>
+  const regex = /\/annotations\/[a-zA-Z0-9\-]+.*/;
+  const match = originalId.match(regex);
+  
+  if (match) {
+      return match[0]; // Return the matched string
+  } else {
+      return null; // If no match found
+  }
+}
+
+const extractXYWH = (inputString) => {
+  // Regular expression to match #xywh=<four numbers separated by commas>
+  const regex = /#xywh=\d+,\d+,\d+,\d+/;
+  const match = inputString.match(regex);
+  
+  if (match) {
+      return match[0]; // Return the matched string
+  } else {
+      return null; // If no match found
+  }
+}
+
+const formatAnnotations = (localCanvas, remoteCanvasId) => {
+  if("annotations" in localCanvas) {
+    for(let annotationPage of localCanvas["annotations"]) {
+      const annotationPageId = extractAnnotationId(annotationPage["id"])
+      annotationPage["id"] = `${remoteCanvasId}${annotationPageId}` 
+      console.log("new id: ", annotationPage["id"])
+      for(let annotation of annotationPage["items"]) {
+        const annotationId = extractAnnotationId(annotation["id"])
+        annotation["id"] = `${remoteCanvasId}${annotationId}` 
+        const targetPosition = extractXYWH(annotation["target"])
+        annotation["target"] = `${remoteCanvasId}${targetPosition}` 
+        //annotation["body"]['id'] = `${remoteCanvasId}${annotationId}/body` 
+        delete annotation["body"]['id'] // bug fix - TODO - if fixed in editor, remove line
+      }
+    }
+  }
+  return localCanvas
+  /*
+    "annotations": [
+      {
+        "id": "canvas-C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/newspaper/oocihm.N_00127_18760105/0001.jpg/annotations/cetlls58mie-m3rcqsth",
+        "type": "AnnotationPage",
+        "items": [
+          {
+            "id": "canvas-C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/newspaper/oocihm.N_00127_18760105/0001.jpg/annotations/cetlls58mie-m3rcqsth/annotation/mes71sw1kpr-m3rcqznd",
+            "type": "Annotation",
+            "motivation": "describing",
+            "target": "canvas-C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/newspaper/oocihm.N_00127_18760105/0001.jpg#xywh=2335,1821,934,596",
+            "body": {
+              "id": "canvas-C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/newspaper/oocihm.N_00127_18760105/0001.jpg/annotations/cetlls58mie-m3rcqsth/annotation/mes71sw1kpr-m3rcqznd/html/en/6ycudwaj9v3-m3rcqznd",
+              "type": "TextualBody",
+              "format": "text/html",
+              "language": "en",
+              "value": "number"
+            }
+          }
+        ]
+      }
+    ]
+  */
 }
   
 const getNewManifestId = async () => {
