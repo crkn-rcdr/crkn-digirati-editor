@@ -1,22 +1,22 @@
 
 import "manifest-editor/dist/index.css"
-import './App.css'
+import "./App.css"
 import { ManifestEditor } from "manifest-editor"
 import { VaultProvider } from "react-iiif-vault"
 import { Vault } from "@iiif/helpers/vault"
 import { useEffect, useState } from "react"
-import { Button, ChakraProvider } from '@chakra-ui/react'
+import { Button, ChakraProvider } from "@chakra-ui/react"
 import { OpenManifestFromURLMenu } from "./components/OpenManifestFromURLMenu"
 import { CreateManifestFromFolderMenu } from "./components/CreateManifestFromFolderMenu"
 import { OpenLocalManifestMenu } from "./components/OpenLocalManifestMenu"
 import { SaveManifestLocalyMenu } from "./components/SaveManifestLocalyMenu"
 import { PublishManifestToAPIMenu } from "./components/PublishManifestToAPIMenu"
-import { ChevronDownIcon} from '@chakra-ui/icons'
+import { ChevronDownIcon} from "@chakra-ui/icons"
 import {
   Menu,
   MenuButton,
   MenuList
-} from '@chakra-ui/react'
+} from "@chakra-ui/react"
 
 function App() {
   const vault = new Vault()
@@ -29,7 +29,7 @@ function App() {
         let storedData = JSON.parse(manifest)
         console.log("storedddd", manifest)
         setData(storedData as any)
-        localStorage.removeItem('manifest-data') // So that window close starts you afresh
+        localStorage.removeItem("manifest-data") // So that window close starts you afresh
       } catch(e) {
         localStorage.clear()
         console.log(e)
@@ -71,7 +71,7 @@ function App() {
                     <PublishManifestToAPIMenu/>
                   </div>
                 </ChakraProvider>
-                <ManifestEditor resource={{ id: data['id'], type: "Manifest" }} data={data as any}/>
+                <ManifestEditor resource={{ id: data["id"], type: "Manifest" }} data={data as any}/>
               </div>
             :
             <ChakraProvider>
