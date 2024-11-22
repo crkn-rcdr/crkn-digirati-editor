@@ -1,13 +1,14 @@
 const Store = require('electron-store')
 const store = new Store()
-//store.clear()
+store.clear()
 
 let setManifest = (data) => {
-    console.log(data)
-    store.set(data["id"], JSON.stringify(data))
+    let id = data["id"].replace(/\./g, '\\.')
+    store.set(id, JSON.stringify(data))
 }
 
 let getManifest = (id) => {
+    id = id.replace(/\./g, '\\.')
     return JSON.parse(store.get(id))
 }
 

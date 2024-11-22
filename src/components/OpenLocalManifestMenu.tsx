@@ -26,7 +26,6 @@ import {
       window.electronAPI.getManifestLocally(item)
         .then ( data => { // {result, data}
           try {
-            console.log("Result", data)
             localStorage.setItem("manifest-data", JSON.stringify(data))
             localStorage.setItem("manifest-id", data.id)
             window.location.reload()
@@ -41,7 +40,6 @@ import {
         window.electronAPI.listManifestLocally()
           .then ( res => {
             try {
-              console.log("res", res)
               if(res) setData(res as any)
             } catch (e) {
               console.log(e)

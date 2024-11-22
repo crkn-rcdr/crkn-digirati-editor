@@ -34,7 +34,7 @@ const handleCreateManifestFromFolder = async () => {
     const { filePaths } = await dialog.showOpenDialog({ properties: ['openDirectory'] })
     if (!filePaths.length) return
     const folderPath = filePaths[0].replace(/\\/g, '/')
-    return await createManifest(folderPath, null)
+    return await createManifest(folderPath)
   } catch (e) {
     console.error("Error selecting folder:", e)
     dialog.showErrorBox('Error', 'Could not select folder.')

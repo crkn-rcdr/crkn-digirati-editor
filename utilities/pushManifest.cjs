@@ -5,6 +5,8 @@ const presentationApiUrl = 'https://crkn-iiif-presentation-api.azurewebsites.net
 const editorApiUrl = 'https://crkn-asset-manager.azurewebsites.net'
 const imageApiUrl = 'https://image-tor.canadiana.ca'
 let AUTH_TOKEN
+
+//TODO: change to WIP
 const logCachePath = 'C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/manifest-editor/new-manifest-log.csv'
 // Handle manifest push to APIs
 const pushManifest = async (data, loadingWindow, NEW_AUTH_TOKEN) => {
@@ -77,7 +79,6 @@ const cleanManifestMetadata = (data) => {
         }
       }
     }
-    console.log("newMetadata", JSON.stringify(newMetadata))
     data['metadata'] = newMetadata
     return data
 }
@@ -86,7 +87,6 @@ const cleanManifestMetadata = (data) => {
 const generateManifestId = (data) => {
     let manifestId
     const manifestIdSet = data.id.includes(presentationApiUrl)
-    console.log("data.id", data.id)
     if (manifestIdSet) {
       const regex = /\/([^\/]+\/[^\/]+)$/;
       const match = data.id.match(regex);
@@ -124,7 +124,8 @@ const saveImagesToCanvas = async (data, loadingWindow, manifestId, originalId) =
     for (let i = 0; i < data.items.length; i++) {
       loadingWindow.webContents.executeJavaScript(`
         document.getElementById('title').innerHTML = 'Pushing Manifest: ${originalId}';
-        document.getElementById('message').innerHTML = 'While you wait, feel free to go back to the main menu and work on another manifest.<br/>Saving image ${i + 1} of ${data.items.length}...';
+        document.getElementById('message1').innerHTML = 'While you wait, feel free to go back to the main menu and work on another manifest.';
+        document.getElementById('message2').innerHTML = 'Saving image ${i + 1} of ${data.items.length}...';
       `)
 
       // Only add local files and non-crkn images to swift - or if old manifest url just format
@@ -132,7 +133,6 @@ const saveImagesToCanvas = async (data, loadingWindow, manifestId, originalId) =
       if(!data.items[i].items[0].items[0].body.id.includes('http')) { // If a image on the user's computer
         const canvasFilePath = data.items[i].items[0].items[0].body.id
         const formData = createFormDataFromFile(canvasFilePath)
-        console.log(formData)
         const response = await fetch(`${editorApiUrl}/uploadfiles/${manifestId}`, {
           method: 'POST',
           body: formData,
@@ -141,9 +141,6 @@ const saveImagesToCanvas = async (data, loadingWindow, manifestId, originalId) =
         canvasRes = await response.json()
       } 
       else if(!data.items[i].items[0].items[0].body.id.includes(imageApiUrl)){ // If external non-crkn image
-        console.log({
-          urls : [data.items[i].items[0].items[0].body.id]
-        })
         const response = await fetch(`${editorApiUrl}/createfilesfromurl/${manifestId}`, {
           method: 'POST',
           body: JSON.stringify({
@@ -210,7 +207,6 @@ const saveImagesToCanvas = async (data, loadingWindow, manifestId, originalId) =
       if (canvasRes) { // if defined, we did something to a canvas
         if (canvasRes.canvases?.length) {
           let canvas = canvasRes.canvases[0]
-          console.log("canvas", canvas)
           data.items[i] = formatAnnotations(data.items[i], canvas["id"])
           canvasIndexArray.push({ index: i, canvas })
         } else {
@@ -254,7 +250,6 @@ const formatAnnotations = (localCanvas, remoteCanvasId) => {
     for(let annotationPage of localCanvas["annotations"]) {
       const annotationPageId = extractAnnotationId(annotationPage["id"])
       annotationPage["id"] = `${remoteCanvasId}${annotationPageId}` 
-      console.log("new id: ", annotationPage["id"])
       for(let annotation of annotationPage["items"]) {
         const annotationId = extractAnnotationId(annotation["id"])
         annotation["id"] = `${remoteCanvasId}${annotationId}` 
@@ -278,7 +273,6 @@ const getNewManifestId = async () => {
 const createFormDataFromFile = (canvasFilePath) => {
     const file = fs.readFileSync(canvasFilePath)
     const type = mime.lookup(canvasFilePath)
-    console.log(file, canvasFilePath, type)
     const fileBlob = new Blob([file], { type })
     const formData = new FormData()
     formData.append("files", fileBlob, {
@@ -308,7 +302,7 @@ const attachRequiredFiles = (data, manifestId, slug) => {
 // Save the manifest to the API
 const saveManifestToAPI = async (data, manifestId, loadingWindow, originalId, slug) => {
     loadingWindow.webContents.executeJavaScript(`
-        document.getElementById('message').innerHTML = 'While you wait, feel free to go back to the main window and work on another manifest.<br/>Saving manifest...';
+        document.getElementById('message1').innerHTML = 'While you wait, feel free to go back to the main window and work on another manifest.<br/>Saving manifest...';
     `)
     const response = await fetch(`${editorApiUrl}/savemanifest/${manifestId}`, {
       method: 'POST',
@@ -319,7 +313,10 @@ const saveManifestToAPI = async (data, manifestId, loadingWindow, originalId, sl
     if (manifestRes.success) {
         loadingWindow.webContents.executeJavaScript(`
             document.getElementById('title').innerHTML = '${originalId} - Success';
-            document.getElementById('message').innerHTML = ' Your manifest has been saved to the API. You can now access it using the following url: ${presentationApiUrl}/manifest/${manifestId} But for now, you must run the legacy access script on the VM to add/update this object in CAP.';
+            document.getElementById('message1').innerHTML = 'Your manifest has been saved to the IIIF API.';
+            document.getElementById('message2').innerHTML = 'You can now access it using the following url:';
+            document.getElementById('message3').innerHTML = '<a href="${presentationApiUrl}/manifest/${manifestId}" target="_blank">${presentationApiUrl}/manifest/${manifestId}</a>';
+            document.getElementById('message4').innerHTML = 'For now, you must run the legacy access script on the VM to add/update this object in the legacy CAP databases.';
         `)
         //if(!originalId.includes(manifestId)) {
           // Write To Manifest Creation Log CSV
@@ -334,7 +331,7 @@ const saveManifestToAPI = async (data, manifestId, loadingWindow, originalId, sl
     } else {
         loadingWindow.webContents.executeJavaScript(`
             document.getElementById('title').innerHTML = '${originalId} - Error';
-            document.getElementById('message').innerHTML = '${manifestRes.message}';
+            document.getElementById('message1').innerHTML = '${manifestRes.message}';
         `)
     }
 }

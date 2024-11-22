@@ -27,7 +27,6 @@ function App() {
     if(typeof manifest === "string") {
       try {
         let storedData = JSON.parse(manifest)
-        console.log("storedddd", manifest)
         setData(storedData as any)
         localStorage.removeItem("manifest-data") // So that window close starts you afresh
       } catch(e) {
@@ -40,10 +39,8 @@ function App() {
   vault.subscribe(() => {
     try {
       const manifestId = localStorage.getItem("manifest-id")
-      console.log("manifestId", manifestId)
       if(typeof manifestId === "string") {
         const manifest = vault.getObject(manifestId)
-        console.log("storedvaultddd", manifest)
         setData(manifest as any)
       }
     } catch (e) {

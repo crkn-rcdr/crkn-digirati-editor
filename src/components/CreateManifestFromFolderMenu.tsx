@@ -8,13 +8,10 @@ export function CreateManifestFromFolderMenu() {
     window.electronAPI.createManifestFromFolder()
       .then ( res => {
         try {
-          /*let id = (Math.random() + 1).toString(36).substring(7)
-          res['id'] = id*/
           localStorage.removeItem("manifest-data")
           localStorage.setItem("manifest-id", res['id'])
           localStorage.setItem("manifest-data", JSON.stringify(res))
           window.location.reload()
-          //vault.loadManifestSync(res['id'], res)
         } catch (e) {
           console.log(e)
         }

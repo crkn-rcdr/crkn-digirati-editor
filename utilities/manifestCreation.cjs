@@ -57,9 +57,9 @@ let getManifestItems = (files) => {
     }
     return manifestItems
 }
-let createManifest = (projectPath, manifestCache) => {
-    let files = getFolderContentsArray(projectPath) //pathToWIP + 
-    const manifestId = path.basename(projectPath) // TODO: cuts off '.'
+let createManifest = (projectPath) => {
+    let files = getFolderContentsArray(projectPath)
+    const manifestId = path.basename(projectPath)
     let manifest = {
       "@context": "http://iiif.io/api/presentation/3/context.json",
       "type" : "Manifest",
@@ -368,10 +368,6 @@ let createManifest = (projectPath, manifestCache) => {
       ],
       "items": []
     }
-    // Check if save file exists
-    /*if(typeof manifestCache !== "undefined") {
-      manifest = manifestCache
-    }*/
     manifest['items'] = getManifestItems(files)
       
     return manifest

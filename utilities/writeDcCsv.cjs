@@ -1,4 +1,5 @@
 const fs = require('fs')
+//TODO: change to WIP
 const dcCachePath = 'C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/dcxml/newDcRecords.tsv'
 /*
 For mapping see:
