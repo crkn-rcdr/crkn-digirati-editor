@@ -32,7 +32,7 @@ let getManifestItem = (filePath, position) => {
     }
     annotPage.id = `annotPage-${filePath}`
     annotPage.type = "AnnotationPage"
-    const fileUrl = `${filePath}`// file:// If need fileserver, use: `http://localhost:8000${projectPath}/${fileName}`
+    const fileUrl = `${filePath}`// file:// If need fileserver, use: `https://crkn-asset-manager.azurewebsites.net${projectPath}/${fileName}`
     annot.id = `annot-${filePath}`
     annot.type = "Annotation"
     annot.motivation = 'painting'

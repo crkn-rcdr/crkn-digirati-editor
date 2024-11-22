@@ -4,7 +4,7 @@ const writeDcCsv = require("./utilities/writeDcCsv.cjs")
 const { createManifest } = require("./utilities/manifestCreation.cjs")
 const { pushManifest } = require("./utilities/pushManifest.cjs")
 const { setManifest, getManifest, listManifest } = require("./utilities/manifestStore.cjs")
-const editorApiUrl = 'http://localhost:8000'
+const editorApiUrl = 'https://crkn-asset-manager.azurewebsites.net'
 
 // Global variable for auth token
 let AUTH_TOKEN

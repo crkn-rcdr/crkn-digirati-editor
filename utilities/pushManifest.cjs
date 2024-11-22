@@ -2,7 +2,7 @@ const fs = require('fs')
 const mime = require('mime-types')
 const path = require('path')
 const presentationApiUrl = 'https://crkn-iiif-presentation-api.azurewebsites.net'
-const editorApiUrl = 'http://localhost:8000'
+const editorApiUrl = 'https://crkn-asset-manager.azurewebsites.net'
 const imageApiUrl = 'https://image-tor.canadiana.ca'
 let AUTH_TOKEN
 const logCachePath = 'C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/manifest-editor/new-manifest-log.csv'
@@ -227,25 +227,25 @@ const saveImagesToCanvas = async (data, loadingWindow, manifestId, originalId) =
 
 const extractAnnotationId = (originalId) => {
   // Regular expression to match /annotations/<alphanumeric_string>
-  const regex = /\/annotations\/[a-zA-Z0-9\-]+.*/;
-  const match = originalId.match(regex);
+  const regex = /\/annotations\/[a-zA-Z0-9\-]+.*/
+  const match = originalId.match(regex)
   
   if (match) {
-      return match[0]; // Return the matched string
+      return match[0] // Return the matched string
   } else {
-      return null; // If no match found
+      return null // If no match found
   }
 }
 
 const extractXYWH = (inputString) => {
   // Regular expression to match #xywh=<four numbers separated by commas>
-  const regex = /#xywh=\d+,\d+,\d+,\d+/;
-  const match = inputString.match(regex);
+  const regex = /#xywh=\d+,\d+,\d+,\d+/
+  const match = inputString.match(regex)
   
   if (match) {
-      return match[0]; // Return the matched string
+      return match[0] // Return the matched string
   } else {
-      return null; // If no match found
+      return null // If no match found
   }
 }
 
@@ -266,29 +266,6 @@ const formatAnnotations = (localCanvas, remoteCanvasId) => {
     }
   }
   return localCanvas
-  /*
-    "annotations": [
-      {
-        "id": "canvas-C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/newspaper/oocihm.N_00127_18760105/0001.jpg/annotations/cetlls58mie-m3rcqsth",
-        "type": "AnnotationPage",
-        "items": [
-          {
-            "id": "canvas-C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/newspaper/oocihm.N_00127_18760105/0001.jpg/annotations/cetlls58mie-m3rcqsth/annotation/mes71sw1kpr-m3rcqznd",
-            "type": "Annotation",
-            "motivation": "describing",
-            "target": "canvas-C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/newspaper/oocihm.N_00127_18760105/0001.jpg#xywh=2335,1821,934,596",
-            "body": {
-              "id": "canvas-C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/newspaper/oocihm.N_00127_18760105/0001.jpg/annotations/cetlls58mie-m3rcqsth/annotation/mes71sw1kpr-m3rcqznd/html/en/6ycudwaj9v3-m3rcqznd",
-              "type": "TextualBody",
-              "format": "text/html",
-              "language": "en",
-              "value": "number"
-            }
-          }
-        ]
-      }
-    ]
-  */
 }
   
 const getNewManifestId = async () => {
@@ -342,7 +319,7 @@ const saveManifestToAPI = async (data, manifestId, loadingWindow, originalId, sl
     if (manifestRes.success) {
         loadingWindow.webContents.executeJavaScript(`
             document.getElementById('title').innerHTML = '${originalId} - Success';
-            document.getElementById('message').innerHTML = ' Your manifest has been saved to the API. You can now access it using the following url: ${presentationApiUrl}/manifest/${manifestId} But for now, you must run the legacy access script on the VM to add this object to CAP.';
+            document.getElementById('message').innerHTML = ' Your manifest has been saved to the API. You can now access it using the following url: ${presentationApiUrl}/manifest/${manifestId} But for now, you must run the legacy access script on the VM to add/update this object in CAP.';
         `)
         //if(!originalId.includes(manifestId)) {
           // Write To Manifest Creation Log CSV
