@@ -1,6 +1,7 @@
 const path = require('path')
 const getFolderContentsArray = require('./getFolderContentsArray.cjs')
 const sizeOf = require("image-size")
+const sharp = require('sharp')
 //const fs = require('fs')
 /**
             "InMagic Identifier" : "objid",
@@ -37,7 +38,7 @@ let getManifestItem = (filePath, position) => {
     annot.type = "Annotation"
     annot.motivation = 'painting'
     annot.body = {
-      id: fileUrl,
+      id: 'file://'+fileUrl,
       type: 'Image',
       format: `image/jpeg`, //`image/${ext.replace('.', '')}`,
       width: dimensions.width,
@@ -48,16 +49,30 @@ let getManifestItem = (filePath, position) => {
     canvas.items = [annotPage]
     return canvas
 }
-let getManifestItems = (files) => {
+let getManifestItems = (wipPath, manifestId, files) => {
     let manifestItems = []
     let i = 0
     for (let filePath of files ) {
-      manifestItems.push(getManifestItem(filePath, i))
+      const outputPath = path.format({
+        dir: path.dirname(`${wipPath}\\crkn-scripting\\new-manifests\\${manifestId}`),       // Get the directory of the input file
+        name: path.basename(inputPath, path.extname(inputPath)),  // Get the filename without the extension
+        ext: '.jpg'                          // Set the new extension to '.jpg'
+      })
+      sharp(filePath)
+        .jpeg({ quality: 80 })  // Convert to JPEG format with 80% quality
+        .toFile(outputPath, (err, info) => {
+          if (err) {
+            console.error('Error during conversion:', err);
+          } else {
+            console.log('Conversion successful:', info);
+          }
+        })
+      manifestItems.push(getManifestItem(outputPath, i))
       i++
     }
     return manifestItems
 }
-let createManifest = (projectPath) => {
+let createManifest = (wipPath, projectPath) => {
     let files = getFolderContentsArray(projectPath)
     const manifestId = path.basename(projectPath)
     let manifest = {
@@ -368,7 +383,7 @@ let createManifest = (projectPath) => {
       ],
       "items": []
     }
-    manifest['items'] = getManifestItems(files)
+    manifest['items'] = getManifestItems(wipPath, manifestId, files)
       
     return manifest
 }
