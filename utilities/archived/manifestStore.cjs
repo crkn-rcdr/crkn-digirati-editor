@@ -13,7 +13,11 @@ let getManifest = (id) => {
 }
 
 let listManifest = () => {
-    const all = Object.keys(store.store)
+    let all = Object.keys(store.store)
+    all = all.filter((item) => {
+        if(item == "wipPath") return false
+        return true
+    })
     return all.reverse()
 }
 

@@ -1,10 +1,12 @@
+//import { useExistingVault } from "react-iiif-vault"
 import { MenuItem } from '@chakra-ui/react'
 
-export function CreateManifestFromFolderMenu() {
-  let onCreatePress = () => {
-    window.electronAPI.createManifestFromFolder()
+export function OpenFileMenu() {
+  let onOpenPress = () => {
+    window.electronAPI.openFile()
       .then ( res => {
         try {
+          localStorage.removeItem("manifest-data")
           localStorage.setItem("manifest-id", res['id'])
           localStorage.setItem("manifest-data", JSON.stringify(res))
           window.location.reload()
@@ -15,9 +17,9 @@ export function CreateManifestFromFolderMenu() {
   }
   return (
       <MenuItem
-        onClick={onCreatePress}
-        title="Create New Manifest from Folder">
-          Create New Manifest from Folder
+        onClick={onOpenPress}
+        title="Open Manifest File">
+          Open Manifest File
       </MenuItem>
   )
 }

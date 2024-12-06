@@ -8,15 +8,16 @@ import { useEffect, useState } from "react"
 import { Button, ChakraProvider } from "@chakra-ui/react"
 import { OpenManifestFromURLMenu } from "./components/OpenManifestFromURLMenu"
 import { CreateManifestFromFolderMenu } from "./components/CreateManifestFromFolderMenu"
-import { OpenLocalManifestMenu } from "./components/OpenLocalManifestMenu"
-import { SaveManifestLocalyMenu } from "./components/SaveManifestLocalyMenu"
-import { PublishManifestToAPIMenu } from "./components/PublishManifestToAPIMenu"
 import { ChevronDownIcon} from "@chakra-ui/icons"
 import {
   Menu,
   MenuButton,
   MenuList
 } from "@chakra-ui/react"
+import { WipSettingsMenu } from "./components/WipSettingsMenu"
+import { OpenFileMenu } from "./components/OpenFileMenu"
+import { SaveMenu } from "./components/SaveMenu"
+import { ExtractMetadataMenu } from "./components/ExtractMetadataMenu"
 
 function App() {
   const vault = new Vault()
@@ -54,18 +55,26 @@ function App() {
               <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column"}}>
                 <ChakraProvider>
                   <div style={{ width: "100vw", display: "flex", flexDirection: "row", background: "rgb(238 242 247)"}}>              
+                  <Menu>
+                    <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                      Settings
+                    </MenuButton>
+                    <MenuList>
+                      <WipSettingsMenu/>
+                    </MenuList>
+                  </Menu>
                     <Menu>
                       <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
                         Open
                       </MenuButton>
                       <MenuList>
                         <CreateManifestFromFolderMenu/>
+                        <OpenFileMenu/>
                         <OpenManifestFromURLMenu/>
-                        <OpenLocalManifestMenu/>
                       </MenuList>
                     </Menu>
-                    <SaveManifestLocalyMenu/>
-                    <PublishManifestToAPIMenu/>
+                    <ExtractMetadataMenu/>
+                    <SaveMenu/>
                   </div>
                 </ChakraProvider>
                 <ManifestEditor resource={{ id: data["id"], type: "Manifest" }} data={data as any}/>
@@ -76,12 +85,20 @@ function App() {
                 <h1>Get started</h1>
                 <Menu>
                   <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                    Settings
+                  </MenuButton>
+                  <MenuList>
+                    <WipSettingsMenu/>
+                  </MenuList>
+                </Menu>
+                <Menu>
+                  <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
                     Open
                   </MenuButton>
                   <MenuList>
                     <CreateManifestFromFolderMenu/>
+                    <OpenFileMenu/>
                     <OpenManifestFromURLMenu/>
-                    <OpenLocalManifestMenu/>
                   </MenuList>
                 </Menu>
               </div>

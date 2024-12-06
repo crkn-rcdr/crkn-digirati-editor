@@ -1,15 +1,14 @@
-//import { useEffect } from "react"
-import { useExistingVault } from "react-iiif-vault"
+/*import { useExistingVault } from "react-iiif-vault"
 import { Button } from '@chakra-ui/react'
-export function SaveManifestLocalyMenu() {
+export function PublishManifestToAPIMenu() {
   const vault = useExistingVault()
 
-  let onSave = () => {
+  let onPublish = () => {
     const manifestId = localStorage.getItem("manifest-id")
     if(typeof manifestId === "string") {
       const data = vault.toPresentation3({ id: manifestId, type: 'Manifest' })
-      window.electronAPI.setManifestLocally(data)
-        .then ( saveRes => { // {result, data}
+      window.electronAPI.pushManifestToApis(data)
+        .then ( saveRes => {
           try {
             console.log("Result", saveRes['data'])
           } catch (e) {
@@ -21,6 +20,6 @@ export function SaveManifestLocalyMenu() {
 
 
   return (
-    <Button onClick={onSave}>Save</Button>
+    <Button onClick={onPublish}>Publish</Button>
   )
-}
+}*/

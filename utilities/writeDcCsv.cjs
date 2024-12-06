@@ -1,11 +1,9 @@
 const fs = require('fs')
-//TODO: change to WIP
-const dcCachePath = 'C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/dcxml/newDcRecords.tsv'
 /*
 For mapping see:
 https://docs.google.com/spreadsheets/d/1jya9WBezTJb3HZlRkiwdvg38Exm52THQ/edit?pli=1&gid=1762592894#gid=1762592894
 */
-module.exports = function writeDcCsv(manifest) {
+module.exports = function writeDcCsv(wipPath, manifest) {
     try {
         // Extract values
         let manifestFieldsForDCMap = {
@@ -68,6 +66,7 @@ module.exports = function writeDcCsv(manifest) {
             "dc:relation",
             "dc:rights"
         ]
+        const dcCachePath = wipPath + '/crkn-scripting/new-dcxml/newDcRecords.tsv'
         if(!fs.existsSync(dcCachePath)) {
             let header = rowTitles.join("\t") + "\n"
             fs.writeFileSync(dcCachePath , header , "utf-8")

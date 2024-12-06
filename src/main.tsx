@@ -9,11 +9,11 @@ interface IElectronAPI {
   chrome: () => string,
   electron: () => string,
   createManifestFromFolder: () => Promise<any>,
-  pushManifestToApis: (data:any) => Promise<any>,
-  setManifestLocally: (data:any) => Promise<any>,
-  getManifestLocally: (id:any) => Promise<any>,
-  listManifestLocally: () => Promise<any>,
-  triggerLegacyIngest: (slug:any) => Promise<any>
+  openFile: () => Promise<any>,
+  setWipPath: () => Promise<any>,
+  getWipPath: () => Promise<any>,
+  extractDc: (data:any) => Promise<any>,
+  saveManifest: (data:any) => Promise<any>
 }
 declare global {
   interface Window {

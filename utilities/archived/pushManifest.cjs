@@ -1,13 +1,12 @@
 const fs = require('fs')
 const mime = require('mime-types')
 const path = require('path')
+const Store = require('electron-store')
+const store = new Store()
 const presentationApiUrl = 'https://crkn-iiif-presentation-api.azurewebsites.net'
-const editorApiUrl = 'https://crkn-asset-manager.azurewebsites.net'
+const editorApiUrl = 'https://crkn-asset-manager.azurewebsites.net'// 'http://localhost:8000' // https://crkn-asset-manager.azurewebsites.net
 const imageApiUrl = 'https://image-tor.canadiana.ca'
 let AUTH_TOKEN
-
-//TODO: change to WIP
-const logCachePath = 'C:/Users/BrittnyLapierre/OneDrive - Canadian Research Knowledge Network/Documents/WIP/manifest-editor/new-manifest-log.csv'
 // Handle manifest push to APIs
 const pushManifest = async (data, loadingWindow, NEW_AUTH_TOKEN) => {
     AUTH_TOKEN = NEW_AUTH_TOKEN
@@ -320,6 +319,8 @@ const saveManifestToAPI = async (data, manifestId, loadingWindow, originalId, sl
         `)
         //if(!originalId.includes(manifestId)) {
           // Write To Manifest Creation Log CSV
+          
+          const logCachePath =  store.get('wipPath') + '/crkn-scripting/manifest-editor-publish-log/new-manifest-log.csv'
           if(!fs.existsSync(logCachePath)) {
             let content = "Slug,URL\n"
             fs.writeFileSync(logCachePath, content , "utf-8")

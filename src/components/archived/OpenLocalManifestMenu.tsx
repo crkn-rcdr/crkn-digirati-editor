@@ -1,4 +1,4 @@
-import {
+/*import {
     Modal,
     ModalOverlay,
     ModalContent,
@@ -22,7 +22,6 @@ import {
     const itemsPerPage = 5;
 
     let onItemPress = (item : any) => {
-      /* Get Item  */
       window.electronAPI.getManifestLocally(item)
         .then ( data => { // {result, data}
           try {
@@ -88,8 +87,6 @@ import {
                     </ListItem>
                   ))}
                 </List>
-
-                {/* Pagination Controls */}
                 <HStack spacing={4} mt={4} justify="center">
                   <Button
                     onClick={() => handlePageChange(currentPage - 1)}
@@ -120,4 +117,4 @@ import {
         </Modal>
       </>
     )
-  }
+  }*/

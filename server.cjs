@@ -2,14 +2,11 @@ const { app, BrowserWindow, session, ipcMain, dialog } = require('electron')
 const path = require('path')
 const writeDcCsv = require("./utilities/writeDcCsv.cjs")
 const { createManifest } = require("./utilities/manifestCreation.cjs")
-const { pushManifest } = require("./utilities/pushManifest.cjs")
-const { setManifest, getManifest, listManifest } = require("./utilities/manifestStore.cjs")
-const editorApiUrl = 'https://crkn-asset-manager.azurewebsites.net'
-
-// Global variable for auth token
-let AUTH_TOKEN
-
-// Main application window creation
+const editorApiUrl = 'https://crkn-asset-manager.azurewebsites.net'// 'http://localhost:8000' // https://crkn-asset-manager.azurewebsites.net
+const Store = require('electron-store')
+const store = new Store()
+const fs = require('fs')
+//let AUTH_TOKEN
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 1200,
@@ -18,17 +15,29 @@ const createWindow = () => {
       preload: path.join(__dirname, 'preload.js')
     }
   })
-
-  ipcMain.handle("listManifestLocally", handleListManifestLocally)
-  ipcMain.handle("getManifestLocally", handleGetManifestLocally)
-  ipcMain.handle("setManifestLocally", handleSetManifestLocally)
-  ipcMain.handle("pushManifestToApis", handlePushManifest)
   ipcMain.handle("createManifestFromFolder", handleCreateManifestFromFolder)
-
+  ipcMain.handle('openFile', handleOpenFile)
+  ipcMain.handle('setWipPath', handleSetWipPath)
+  ipcMain.handle('getWipPath', handleGetWipPath)
+  ipcMain.handle('extractDc', handleExtractDc)
+  ipcMain.handle('saveManifest', handleSaveManifest)
   win.loadFile(path.join(__dirname, '/dist/index.html'))
 }
-
-// Handle creation of manifest from a folder
+const handleSetWipPath = async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory'],
+  })
+  if (!result.canceled && result.filePaths.length > 0) {
+    const folderPath = result.filePaths[0]
+    store.set('wipPath', folderPath)
+    return folderPath
+  }
+  return await handleGetWipPath()
+}
+const handleGetWipPath = async () => {
+  const wipPath = store.get('wipPath')
+  return wipPath || 'No WIP folder set.'
+}
 const handleCreateManifestFromFolder = async () => {
   try {
     const { filePaths } = await dialog.showOpenDialog({ properties: ['openDirectory'] })
@@ -40,11 +49,104 @@ const handleCreateManifestFromFolder = async () => {
     dialog.showErrorBox('Error', 'Could not select folder.')
   }
 }
-
+const handleOpenFile = async () => {
+  const result = await dialog.showOpenDialog({
+    title: 'Open Manifest JSON File',
+    filters: [
+      { name: 'JSON Files', extensions: ['json'] },
+      { name: 'All Files', extensions: ['*'] }
+    ],
+    properties: ['openFile']
+  })
+  if (result.canceled) {
+    return null
+  }
+  const filePath = result.filePaths[0]
+  try {
+    const fileData = fs.readFileSync(filePath, 'utf-8')
+    const jsonData = JSON.parse(fileData)
+    return jsonData
+  } catch (error) {
+    dialog.showErrorBox('Error', 'Could not read or parse the JSON file.')
+    return null
+  }
+}
+const handleExtractDc = async(event, data) => {
+  const wipPath = store.get('wipPath')
+  let result = writeDcCsv(wipPath, data)
+  if(result.success){
+    dialog.showMessageBox({
+      type: 'info',       
+      buttons: ['OK'],   
+      title: 'Success',  
+      message: 'The DC Metadata has been extracted!'
+    }) 
+    try {
+      let fieldsToRemove = [ 
+        "InMagic Identifier",
+        "CIHM Identifier",
+        "Alternate Title", //(must be the second title column in the record)
+        "Volume/Issue", //(we concatenate this field with the main title field)
+        "Issue Date",
+        "Coverage Date",
+        "Language",
+        "Place of Publication",
+        "Publisher",
+        "Publication Date",
+        "Source"
+      ]
+      let newMetadata = []
+      for (let field of data["metadata"]) { 
+        if('en' in field['label'] && 'en' in field['value'] ) {
+          if(!fieldsToRemove.includes(field['label']['en'][0])) {
+            newMetadata.push(field)
+          }
+        }
+      }
+      data['metadata'] = newMetadata
+    } catch(e) {
+      dialog.showErrorBox('Error', 'There was a problem when automatically removing the dc metadata from the manifest.')
+    }
+    return data
+  } else {
+    dialog.showErrorBox('Error', 'The DC Metadata could not be extracted.')
+    return data
+  }
+}
+const handleSaveManifest = async(event, data) => {
+  try {
+    const wipPath = store.get('wipPath')
+    let slug
+    for (let field of data["metadata"]) { 
+      if('en' in field['label'] && 'en' in field['value'] ) {
+        if(field['label']['en'][0] === "Slug") {
+          slug = field['value']['en'][0]
+        }
+      }
+    }
+    if(!slug) throw new Error('You need to add a Slug metadata element to the metadata array before saving.')
+    const filePath = `${wipPath}\\crkn-scripting\\new-imports\\${slug}.json`
+    fs.writeFileSync(filePath, JSON.stringify(data), 'utf-8')
+    dialog.showMessageBox({
+      type: 'info',       
+      buttons: ['OK'],   
+      title: 'Success',  
+      message: `File saved successfully at: ${filePath}`
+    }) 
+    return true
+  } catch (error) {
+    dialog.showErrorBox('Error', `There was a problem saving the file. ${error}`)
+    return false
+  }
+}
 // Handle manifest push to APIs
-const handlePushManifest = async (event, data) => {
+/*const handlePushManifest = async (event, data) => {
   const loadingWindow = new BrowserWindow()
   try {
+    const wipPath = await handleGetWipPath()
+    if (wipPath === 'No WIP folder set.') {
+      throw new Error('No WIP folder set. Go into the settings to set your WIP path.')
+    }
     loadingWindow.loadFile('saving.html')
     const result = writeDcCsv(data) // TODO: Move this to own menu item
     if (!result.success) {
@@ -61,7 +163,6 @@ const handlePushManifest = async (event, data) => {
     //loadingWindow.close()
   }
 }
-
 // Handle saving manifests to local db
 const handleListManifestLocally = async (event) => {
   try {
@@ -91,11 +192,12 @@ const handleSetManifestLocally = async (event, data) => {
     console.error("Error saving manifest:", e)
     dialog.showErrorBox('Error', 'Could not save manifest.')
   }
-}
+}*/
+
 
 // App initialization
 app.whenReady().then(() => {
-  const authWindow = new BrowserWindow({ webPreferences: { nodeIntegration: false } })
+  /*const authWindow = new BrowserWindow({ webPreferences: { nodeIntegration: false } })
   authWindow.loadURL(`${editorApiUrl}/auth/login`)
 
   authWindow.webContents.on('did-redirect-navigation', () => {
@@ -108,7 +210,8 @@ app.whenReady().then(() => {
       }).catch(console.error)
   })
 
-  authWindow.on('closed', createWindow)
+  authWindow.on('closed', createWindow)*/
+  createWindow()
 })
 
 app.on('window-all-closed', () => {
