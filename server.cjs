@@ -2,10 +2,10 @@ const { app, BrowserWindow, session, ipcMain, dialog } = require('electron')
 const path = require('path')
 const writeDcCsv = require("./utilities/writeDcCsv.cjs")
 const { createManifest } = require("./utilities/manifestCreation.cjs")
-const editorApiUrl = 'https://crkn-asset-manager.azurewebsites.net'// 'http://localhost:8000' // https://crkn-asset-manager.azurewebsites.net
 const Store = require('electron-store')
-const store = new Store()
 const fs = require('fs')
+const editorApiUrl = 'https://crkn-asset-manager.azurewebsites.net'// 'http://localhost:8000' // https://crkn-asset-manager.azurewebsites.net
+const store = new Store()
 //let AUTH_TOKEN
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -40,10 +40,11 @@ const handleGetWipPath = async () => {
 }
 const handleCreateManifestFromFolder = async () => {
   try {
+    const wipPath = store.get('wipPath')
     const { filePaths } = await dialog.showOpenDialog({ properties: ['openDirectory'] })
     if (!filePaths.length) return
     const folderPath = filePaths[0].replace(/\\/g, '/')
-    return await createManifest(folderPath)
+    return await createManifest(wipPath, folderPath)
   } catch (e) {
     console.error("Error selecting folder:", e)
     dialog.showErrorBox('Error', 'Could not select folder.')

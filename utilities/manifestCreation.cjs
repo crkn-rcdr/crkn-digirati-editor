@@ -2,6 +2,7 @@ const path = require('path')
 const getFolderContentsArray = require('./getFolderContentsArray.cjs')
 const sizeOf = require("image-size")
 const sharp = require('sharp')
+const fs = require('fs')
 //const fs = require('fs')
 /**
             "InMagic Identifier" : "objid",
@@ -49,30 +50,37 @@ let getManifestItem = (filePath, position) => {
     canvas.items = [annotPage]
     return canvas
 }
-let getManifestItems = (wipPath, manifestId, files) => {
-    let manifestItems = []
-    let i = 0
-    for (let filePath of files ) {
-      const outputPath = path.format({
-        dir: path.dirname(`${wipPath}\\crkn-scripting\\new-manifests\\${manifestId}`),       // Get the directory of the input file
-        name: path.basename(inputPath, path.extname(inputPath)),  // Get the filename without the extension
-        ext: '.jpg'                          // Set the new extension to '.jpg'
-      })
-      sharp(filePath)
-        .jpeg({ quality: 80 })  // Convert to JPEG format with 80% quality
-        .toFile(outputPath, (err, info) => {
-          if (err) {
-            console.error('Error during conversion:', err);
-          } else {
-            console.log('Conversion successful:', info);
-          }
-        })
-      manifestItems.push(getManifestItem(outputPath, i))
-      i++
+let getManifestItems = async (wipPath, manifestId, files) => {
+  let newPaths = []
+  for (let filePath of files ) {
+    console.log("manifestId", manifestId)
+    const directory = `${wipPath}\\crkn-scripting\\new-manifests\\${manifestId}`
+    const filenameWithoutExtension = path.basename(filePath, path.extname(filePath))
+    //filePath.substring(filePath.lastIndexOf('\\') + 1, filePath.lastIndexOf('.'))  // Extract filename without extension
+    const outputPath = `${directory}\\${filenameWithoutExtension}.jpg`  // Combine to create full output path with .jpg extension
+    console.log("outputPath", outputPath)
+    // Ensure the output directory exists
+    const outputDir = path.dirname(outputPath);
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });  // Create directory if it doesn't exist
     }
-    return manifestItems
+    const res = await sharp(filePath)
+      .jpeg({ quality: 80 })  // Convert to JPEG format with 80% quality
+      .toFile(outputPath)
+    console.log(res)
+    newPaths.push(outputPath)
+  }
+  let i = 0
+  let manifestItems = []
+  newPaths.sort()
+  console.log(newPaths)
+  for (let filePath of newPaths ) {
+    manifestItems.push(getManifestItem(filePath, i))
+    i++
+  }
+  return manifestItems
 }
-let createManifest = (wipPath, projectPath) => {
+let createManifest = async (wipPath, projectPath) => {
     let files = getFolderContentsArray(projectPath)
     const manifestId = path.basename(projectPath)
     let manifest = {
@@ -383,7 +391,7 @@ let createManifest = (wipPath, projectPath) => {
       ],
       "items": []
     }
-    manifest['items'] = getManifestItems(wipPath, manifestId, files)
+    manifest['items'] = await getManifestItems(wipPath, manifestId, files)
       
     return manifest
 }
