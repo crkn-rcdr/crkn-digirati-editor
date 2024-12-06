@@ -125,7 +125,7 @@ const handleSaveManifest = async(event, data) => {
       }
     }
     if(!slug) throw new Error('You need to add a Slug metadata element to the metadata array before saving.')
-    const filePath = `${wipPath}\\crkn-scripting\\new-imports\\${slug}.json`
+    const filePath = `${wipPath}\\crkn-scripting\\new-manifests\\${slug}.json`
     fs.writeFileSync(filePath, JSON.stringify(data), 'utf-8')
     dialog.showMessageBox({
       type: 'info',       
