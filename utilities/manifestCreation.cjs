@@ -53,10 +53,10 @@ let getManifestItem = (filePath, position) => {
 let getManifestItems = async (wipPath, manifestId, files) => {
   let newPaths = []
   for (let filePath of files ) {
-    const directory = `${wipPath}\\crkn-scripting\\new-manifests\\${manifestId}`
+    const directory = `${wipPath}crkn-scripting/new-manifest-images/${manifestId}`
     const filenameWithoutExtension = path.basename(filePath, path.extname(filePath))
     //filePath.substring(filePath.lastIndexOf('\\') + 1, filePath.lastIndexOf('.'))  // Extract filename without extension
-    const outputPath = `${directory}\\${filenameWithoutExtension}.jpg`  // Combine to create full output path with .jpg extension
+    const outputPath = `${directory}/${filenameWithoutExtension}.jpg`  // Combine to create full output path with .jpg extension
     // Ensure the output directory exists
     const outputDir = path.dirname(outputPath);
     if (!fs.existsSync(outputDir)) {

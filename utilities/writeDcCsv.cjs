@@ -66,7 +66,7 @@ module.exports = function writeDcCsv(wipPath, manifest) {
             "dc:relation",
             "dc:rights"
         ]
-        const dcCachePath = wipPath + '/crkn-scripting/new-dcxml/newDcRecords.tsv'
+        const dcCachePath = wipPath + 'crkn-scripting/new-dcxml/newDcRecords.tsv'
         if(!fs.existsSync(dcCachePath)) {
             let header = rowTitles.join("\t") + "\n"
             fs.writeFileSync(dcCachePath , header , "utf-8")

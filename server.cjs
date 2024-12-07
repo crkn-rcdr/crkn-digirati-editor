@@ -28,7 +28,7 @@ const handleSetWipPath = async () => {
     properties: ['openDirectory'],
   })
   if (!result.canceled && result.filePaths.length > 0) {
-    const folderPath = result.filePaths[0]
+    const folderPath = result.filePaths[0].replace("\\", "/")
     store.set('wipPath', folderPath)
     return folderPath
   }
@@ -130,7 +130,7 @@ const handleSaveManifest = async(event, data) => {
       }
     }
     if(!slug) throw new Error('You need to add a Slug metadata element to the metadata array before saving.')
-    const filePath = `${wipPath}\\crkn-scripting\\new-manifests\\${slug}.json`
+    const filePath = `${wipPath}crkn-scripting/new-manifests/${slug}.json`
     fs.writeFileSync(filePath, JSON.stringify(data), 'utf-8')
     dialog.showMessageBox({
       type: 'info',       
