@@ -43,8 +43,12 @@ const handleCreateManifestFromFolder = async () => {
     const wipPath = store.get('wipPath')
     const { filePaths } = await dialog.showOpenDialog({ properties: ['openDirectory'] })
     if (!filePaths.length) return
+    const loadingWindow = new BrowserWindow()
+    loadingWindow.loadFile('loading.html')
     const folderPath = filePaths[0].replace(/\\/g, '/')
-    return await createManifest(wipPath, folderPath)
+    const manifest = await createManifest(wipPath, folderPath)
+    loadingWindow.close()
+    return manifest
   } catch (e) {
     console.error("Error selecting folder:", e)
     dialog.showErrorBox('Error', 'Could not select folder.')

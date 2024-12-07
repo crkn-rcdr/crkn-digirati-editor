@@ -53,27 +53,23 @@ let getManifestItem = (filePath, position) => {
 let getManifestItems = async (wipPath, manifestId, files) => {
   let newPaths = []
   for (let filePath of files ) {
-    console.log("manifestId", manifestId)
     const directory = `${wipPath}\\crkn-scripting\\new-manifests\\${manifestId}`
     const filenameWithoutExtension = path.basename(filePath, path.extname(filePath))
     //filePath.substring(filePath.lastIndexOf('\\') + 1, filePath.lastIndexOf('.'))  // Extract filename without extension
     const outputPath = `${directory}\\${filenameWithoutExtension}.jpg`  // Combine to create full output path with .jpg extension
-    console.log("outputPath", outputPath)
     // Ensure the output directory exists
     const outputDir = path.dirname(outputPath);
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });  // Create directory if it doesn't exist
     }
-    const res = await sharp(filePath)
+    await sharp(filePath)
       .jpeg({ quality: 80 })  // Convert to JPEG format with 80% quality
       .toFile(outputPath)
-    console.log(res)
     newPaths.push(outputPath)
   }
   let i = 0
   let manifestItems = []
   newPaths.sort()
-  console.log(newPaths)
   for (let filePath of newPaths ) {
     manifestItems.push(getManifestItem(filePath, i))
     i++
@@ -106,7 +102,7 @@ let createManifest = async (wipPath, projectPath) => {
           },
           "value": {
             "en": [
-              "Add a slug"
+              manifestId
             ]
           }
         },
