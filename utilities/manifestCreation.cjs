@@ -1,8 +1,8 @@
 const path = require('path')
 const getFolderContentsArray = require('./getFolderContentsArray.cjs')
 const sizeOf = require("image-size")
-const sharp = require('sharp')
-const fs = require('fs')
+//const sharp = require('sharp')
+//const fs = require('fs')
 //const fs = require('fs')
 /**
             "InMagic Identifier" : "objid",
@@ -53,7 +53,7 @@ let getManifestItem = (filePath, position) => {
 let getManifestItems = async (wipPath, manifestId, files) => {
   let newPaths = []
   for (let filePath of files ) {
-    const directory = `${wipPath}crkn-scripting/new-manifest-images/${manifestId}`
+    /*const directory = `${wipPath}crkn-scripting/new-manifest-images/${manifestId}`
     const filenameWithoutExtension = path.basename(filePath, path.extname(filePath))
     //filePath.substring(filePath.lastIndexOf('\\') + 1, filePath.lastIndexOf('.'))  // Extract filename without extension
     const outputPath = `${directory}/${filenameWithoutExtension}.jpg`  // Combine to create full output path with .jpg extension
@@ -65,7 +65,8 @@ let getManifestItems = async (wipPath, manifestId, files) => {
     await sharp(filePath)
       .jpeg({ quality: 80 })  // Convert to JPEG format with 80% quality
       .toFile(outputPath)
-    newPaths.push(outputPath)
+    newPaths.push(outputPath)*/
+    newPaths.push(filePath)
   }
   let i = 0
   let manifestItems = []
