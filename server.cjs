@@ -1,10 +1,10 @@
 const { app, BrowserWindow, session, ipcMain, dialog } = require('electron')
 const path = require('path')
 const writeDcCsv = require("./utilities/writeDcCsv.cjs")
-const { createManifest } = require("./utilities/manifestCreation.cjs")
+const { createManifest, replaceManifestCanvasesFromFolder } = require("./utilities/manifestCreation.cjs")
 const Store = require('electron-store')
 const fs = require('fs')
-const editorApiUrl = 'https://crkn-asset-manager.azurewebsites.net'// 'http://localhost:8000' // https://crkn-asset-manager.azurewebsites.net
+//const editorApiUrl = 'https://crkn-asset-manager.azurewebsites.net'// 'http://localhost:8000' // https://crkn-asset-manager.azurewebsites.net
 const store = new Store()
 //let AUTH_TOKEN
 const createWindow = () => {
@@ -15,6 +15,7 @@ const createWindow = () => {
       preload: path.join(__dirname, 'preload.js')
     }
   })
+  ipcMain.handle('replaceManifestCanvasesFromFolder', handleReplaceManifestCanvasesFromFolder)
   ipcMain.handle("createManifestFromFolder", handleCreateManifestFromFolder)
   ipcMain.handle('openFile', handleOpenFile)
   ipcMain.handle('setWipPath', handleSetWipPath)
@@ -37,6 +38,22 @@ const handleSetWipPath = async () => {
 const handleGetWipPath = async () => {
   const wipPath = store.get('wipPath')
   return wipPath || 'No WIP folder set.'
+}
+const handleReplaceManifestCanvasesFromFolder = async (event, data) => {
+  try {
+    const wipPath = store.get('wipPath')
+    const { filePaths } = await dialog.showOpenDialog({ properties: ['openDirectory'] })
+    if (!filePaths.length) return
+    const loadingWindow = new BrowserWindow()
+    loadingWindow.loadFile('loading.html')
+    const folderPath = filePaths[0].replace(/\\/g, '/')
+    const manifest = await replaceManifestCanvasesFromFolder(wipPath, folderPath, data)
+    loadingWindow.close()
+    return manifest
+  } catch (e) {
+    console.error("Error selecting folder:", e)
+    dialog.showErrorBox('Error', 'Could not select folder.')
+  }
 }
 const handleCreateManifestFromFolder = async () => {
   try {

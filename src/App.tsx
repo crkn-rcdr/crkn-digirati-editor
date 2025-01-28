@@ -18,6 +18,7 @@ import { WipSettingsMenu } from "./components/WipSettingsMenu"
 import { OpenFileMenu } from "./components/OpenFileMenu"
 import { SaveMenu } from "./components/SaveMenu"
 import { ExtractMetadataMenu } from "./components/ExtractMetadataMenu"
+import { OverwriteManifestCanvasesFromFolderMenu } from "./components/OverwriteManifestCanvasesFromFolderMenu"
 
 function App() {
   const vault = new Vault()
@@ -73,6 +74,7 @@ function App() {
                         <OpenManifestFromURLMenu/>
                       </MenuList>
                     </Menu>
+                    <OverwriteManifestCanvasesFromFolderMenu/>
                     <ExtractMetadataMenu/>
                     <SaveMenu/>
                   </div>

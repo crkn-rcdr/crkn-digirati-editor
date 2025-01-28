@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   chrome: () => process.versions.chrome,
   electron: () => process.versions.electron,
   // we can also expose variables, not just functions
+  replaceManifestCanvasesFromFolder: (data) => ipcRenderer.invoke('replaceManifestCanvasesFromFolder', data),
   createManifestFromFolder: () => ipcRenderer.invoke('createManifestFromFolder'),
   openFile: () => ipcRenderer.invoke('openFile'),
   //pushManifestToApis: (data) => ipcRenderer.invoke('pushManifestToApis', data),

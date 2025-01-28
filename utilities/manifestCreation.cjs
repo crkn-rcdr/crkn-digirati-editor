@@ -393,8 +393,16 @@ let createManifest = async (wipPath, projectPath) => {
     return manifest
 }
 
+let replaceManifestCanvasesFromFolder = async (wipPath, projectPath, manifest) => {
+  let files = getFolderContentsArray(projectPath)
+  const manifestId = path.basename(projectPath)
+  manifest['items'] = await getManifestItems(wipPath, manifestId, files)
+  return manifest
+}
+
 module.exports = {
     getManifestItem,
     getManifestItems,
-    createManifest
+    createManifest,
+    replaceManifestCanvasesFromFolder
 }
