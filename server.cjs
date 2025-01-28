@@ -21,6 +21,7 @@ const createWindow = () => {
   ipcMain.handle('setWipPath', handleSetWipPath)
   ipcMain.handle('getWipPath', handleGetWipPath)
   ipcMain.handle('extractDc', handleExtractDc)
+  ipcMain.handle('relabelCanveses', handleRelabelCanveses)
   ipcMain.handle('saveManifest', handleSaveManifest)
   win.loadFile(path.join(__dirname, '/dist/index.html'))
 }
@@ -133,6 +134,26 @@ const handleExtractDc = async(event, data) => {
   } else {
     dialog.showErrorBox('Error', 'The DC Metadata could not be extracted.')
     return data
+  }
+}
+const handleRelabelCanveses = async(event, data) => {
+  try {
+    console.log(data)
+    let newItems = []
+    let position = 1
+    for (let canvas of data["items"]) { 
+      canvas.label =  {
+        "en": [
+          `Image ${position}`
+        ]
+      }
+      newItems.push(canvas)
+      position = position + 1
+    }
+    data['items'] = newItems
+    return data
+  } catch(e) {
+    dialog.showErrorBox('Error', 'There was a problem when re-labeling the canvases.')
   }
 }
 const handleSaveManifest = async(event, data) => {

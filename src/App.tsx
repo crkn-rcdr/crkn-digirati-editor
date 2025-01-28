@@ -19,6 +19,7 @@ import { OpenFileMenu } from "./components/OpenFileMenu"
 import { SaveMenu } from "./components/SaveMenu"
 import { ExtractMetadataMenu } from "./components/ExtractMetadataMenu"
 import { OverwriteManifestCanvasesFromFolderMenu } from "./components/OverwriteManifestCanvasesFromFolderMenu"
+import { RelabelCanvesesMenu } from "./components/RelabelCanvesesMenu"
 
 function App() {
   const vault = new Vault()
@@ -75,6 +76,7 @@ function App() {
                       </MenuList>
                     </Menu>
                     <OverwriteManifestCanvasesFromFolderMenu/>
+                    <RelabelCanvesesMenu/>
                     <ExtractMetadataMenu/>
                     <SaveMenu/>
                   </div>
