@@ -18,6 +18,10 @@ export function SaveMenu() {
     }
   }
   return (
-    <Button onClick={onSave}>Save</Button>
+    <Button 
+      onClick={onSave}
+      title="Save manifest data on the WIP for ingest">
+        Save
+    </Button>
   )
 }
