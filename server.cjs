@@ -1,12 +1,10 @@
-const { app, BrowserWindow, session, ipcMain, dialog } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const path = require('path')
 const writeDcCsv = require("./utilities/writeDcCsv.cjs")
 const { createManifest, replaceManifestCanvasesFromFolder } = require("./utilities/manifestCreation.cjs")
 const Store = require('electron-store')
 const fs = require('fs')
-//const editorApiUrl = 'https://crkn-asset-manager.azurewebsites.net'// 'http://localhost:8000' // https://crkn-asset-manager.azurewebsites.net
 const store = new Store()
-//let AUTH_TOKEN
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 1200,
@@ -20,6 +18,8 @@ const createWindow = () => {
   ipcMain.handle('openFile', handleOpenFile)
   ipcMain.handle('setWipPath', handleSetWipPath)
   ipcMain.handle('getWipPath', handleGetWipPath)
+  ipcMain.handle('setMetadataProfile', handleSetMetadataProfile)
+  ipcMain.handle('getMetadataProfile', handleGetMetadataProfile)
   ipcMain.handle('extractDc', handleExtractDc)
   ipcMain.handle('relabelCanveses', handleRelabelCanveses)
   ipcMain.handle('saveManifest', handleSaveManifest)
@@ -39,6 +39,15 @@ const handleSetWipPath = async () => {
 const handleGetWipPath = async () => {
   const wipPath = store.get('wipPath')
   return wipPath || 'No WIP folder set.'
+}
+const handleSetMetadataProfile = async (event, data) => {
+  const metadataArray = JSON.stringify(data["metadata"] ? data["metadata"] : [])
+  store.set('metadataProfile', metadataArray)
+  return await handleGetWipPath()
+}
+const handleGetMetadataProfile = async () => {
+  const metadataString = store.get('metadataProfile')
+  return JSON.parse(metadataString)
 }
 const handleReplaceManifestCanvasesFromFolder = async (event, data) => {
   try {
@@ -182,78 +191,9 @@ const handleSaveManifest = async(event, data) => {
     return false
   }
 }
-// Handle manifest push to APIs
-/*const handlePushManifest = async (event, data) => {
-  const loadingWindow = new BrowserWindow()
-  try {
-    const wipPath = await handleGetWipPath()
-    if (wipPath === 'No WIP folder set.') {
-      throw new Error('No WIP folder set. Go into the settings to set your WIP path.')
-    }
-    loadingWindow.loadFile('saving.html')
-    const result = writeDcCsv(data) // TODO: Move this to own menu item
-    if (!result.success) {
-      throw new Error(result.message)
-    }
-    //const result = { success: true, message: "not doing for testing"}
-    data = await pushManifest(data, loadingWindow, AUTH_TOKEN)
-    return { result, data }
-  } catch (e) {
-    console.error("Error pushing manifest:", e)
-    dialog.showErrorBox('Error', e.message)
-    return { result: { success: false, message: e.message }, data }
-  } finally {
-    //loadingWindow.close()
-  }
-}
-// Handle saving manifests to local db
-const handleListManifestLocally = async (event) => {
-  try {
-    const list = await listManifest()
-    return list
-  } catch (e) {
-    console.error("Error saving manifest:", e)
-    dialog.showErrorBox('Error', 'Could not list manifests.')
-  }
-}
-const handleGetManifestLocally = async (event, id) => {
-  try {
-    console.log("id", id)
-    const data = await getManifest(id)
-    console.log("data", data)
-    return data
-  } catch (e) {
-    console.error("Error saving manifest:", e)
-    dialog.showErrorBox('Error', 'Could not get manifest.')
-  }
-}
-const handleSetManifestLocally = async (event, data) => {
-  try {
-    const res = await setManifest(data)
-    return { res }
-  } catch (e) {
-    console.error("Error saving manifest:", e)
-    dialog.showErrorBox('Error', 'Could not save manifest.')
-  }
-}*/
-
 
 // App initialization
 app.whenReady().then(() => {
-  /*const authWindow = new BrowserWindow({ webPreferences: { nodeIntegration: false } })
-  authWindow.loadURL(`${editorApiUrl}/auth/login`)
-
-  authWindow.webContents.on('did-redirect-navigation', () => {
-    session.defaultSession.cookies.get({ name: 'token' })
-      .then(cookies => {
-        if (cookies.length) {
-          AUTH_TOKEN = cookies[0].value
-          authWindow.close()
-        }
-      }).catch(console.error)
-  })
-
-  authWindow.on('closed', createWindow)*/
   createWindow()
 })
 

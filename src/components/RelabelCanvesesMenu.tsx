@@ -1,5 +1,5 @@
 import { useExistingVault } from "react-iiif-vault"
-import { Button } from '@chakra-ui/react'
+import { MenuItem } from '@chakra-ui/react'
 export function RelabelCanvesesMenu() {
     const vault = useExistingVault()
     let onExtractPress = () => {
@@ -19,10 +19,10 @@ export function RelabelCanvesesMenu() {
         }
     }
     return (
-        <Button
+        <MenuItem
             onClick={onExtractPress}
             title="Relabel canvases to match their position in the manifest">
             Relabel Canvases
-        </Button>
+        </MenuItem>
     )
 }

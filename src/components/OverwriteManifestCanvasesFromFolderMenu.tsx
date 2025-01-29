@@ -1,5 +1,5 @@
 import { useExistingVault } from "react-iiif-vault"
-import { Button } from '@chakra-ui/react'
+import { MenuItem } from '@chakra-ui/react'
 export function OverwriteManifestCanvasesFromFolderMenu() {
     const vault = useExistingVault()
     let onOverwritePress = () => {
@@ -19,10 +19,10 @@ export function OverwriteManifestCanvasesFromFolderMenu() {
         }
     }
     return (
-        <Button
+        <MenuItem
             onClick={onOverwritePress}
             title="Overwrite Manifest Canvases from a Folder">
             Overwite Canvases
-        </Button>
+        </MenuItem>
     )
 }

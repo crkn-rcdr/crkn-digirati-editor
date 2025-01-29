@@ -1,5 +1,6 @@
 import { useExistingVault } from "react-iiif-vault"
-import { Button } from '@chakra-ui/react'
+import { MenuItem } from '@chakra-ui/react'
+/* Canvas tools, metadata tools */ 
 export function ExtractMetadataMenu() {
     const vault = useExistingVault()
     let onExtractPress = () => {
@@ -19,10 +20,10 @@ export function ExtractMetadataMenu() {
         }
     }
     return (
-        <Button
+        <MenuItem
             onClick={onExtractPress}
             title="Extract the DC metadata from the Manifest">
             Extract DC
-        </Button>
+        </MenuItem>
     )
 }

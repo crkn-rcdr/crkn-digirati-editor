@@ -75,9 +75,28 @@ function App() {
                         <OpenManifestFromURLMenu/>
                       </MenuList>
                     </Menu>
-                    <OverwriteManifestCanvasesFromFolderMenu/>
-                    <RelabelCanvesesMenu/>
-                    <ExtractMetadataMenu/>
+                    
+                    <Menu>
+                      <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                        Canvas Tools
+                      </MenuButton>
+                      <MenuList>
+                        <OverwriteManifestCanvasesFromFolderMenu/>
+                        <RelabelCanvesesMenu/>
+                      </MenuList>
+                    </Menu>
+
+                    <Menu>
+                      <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                        Metadata Tools
+                      </MenuButton>
+                      <MenuList>
+                        Save Metadata Profile
+                        Load Metadata Profile
+                        <ExtractMetadataMenu/>
+                      </MenuList>
+                    </Menu>
+
                     <SaveMenu/>
                   </div>
                 </ChakraProvider>
