@@ -1,17 +1,15 @@
 import { useExistingVault } from "react-iiif-vault"
 import { MenuItem } from '@chakra-ui/react'
-export function ExtractMetadataMenu() {
+export function SaveMetadataProfileMenu() {
     const vault = useExistingVault()
-    let onExtractPress = () => {
+    let onSetMetadataProfile = () => {
         const manifestId = localStorage.getItem("manifest-id")
         if(typeof manifestId === "string") {
             const data = vault.toPresentation3({ id: manifestId, type: 'Manifest' })
-            window.electronAPI.extractDc(data)
-                .then ( res => {
+            window.electronAPI.setMetadataProfile(data)
+                .then ( () => {
                     try {
-                        localStorage.setItem("manifest-id", res['id'])
-                        localStorage.setItem("manifest-data", JSON.stringify(res))
-                        window.location.reload()
+                        console.log("success.")
                     } catch (e) {
                         console.log(e)
                     }
@@ -20,9 +18,9 @@ export function ExtractMetadataMenu() {
     }
     return (
         <MenuItem
-            onClick={onExtractPress}
-            title="Extract the DC metadata from the Manifest">
-            Extract DC
+            onClick={onSetMetadataProfile}
+            title="Save the current metadata values for future use">
+            Set Metadata Profile
         </MenuItem>
     )
 }

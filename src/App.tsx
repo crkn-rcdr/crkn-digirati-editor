@@ -20,6 +20,8 @@ import { SaveMenu } from "./components/SaveMenu"
 import { ExtractMetadataMenu } from "./components/ExtractMetadataMenu"
 import { OverwriteManifestCanvasesFromFolderMenu } from "./components/OverwriteManifestCanvasesFromFolderMenu"
 import { RelabelCanvesesMenu } from "./components/RelabelCanvesesMenu"
+import { SaveMetadataProfileMenu } from "./components/SaveMetadataProfileMenu"
+import { GetMetadataProfileMenu } from "./components/GetMetadataProfileMenu"
 
 function App() {
   const vault = new Vault()
@@ -91,8 +93,8 @@ function App() {
                         Metadata Tools
                       </MenuButton>
                       <MenuList>
-                        Save Metadata Profile
-                        Load Metadata Profile
+                        <SaveMetadataProfileMenu/>
+                        <GetMetadataProfileMenu/>
                         <ExtractMetadataMenu/>
                       </MenuList>
                     </Menu>

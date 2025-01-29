@@ -41,13 +41,46 @@ const handleGetWipPath = async () => {
   return wipPath || 'No WIP folder set.'
 }
 const handleSetMetadataProfile = async (event, data) => {
-  const metadataArray = JSON.stringify(data["metadata"] ? data["metadata"] : [])
-  store.set('metadataProfile', metadataArray)
-  return await handleGetWipPath()
+  try {
+    data["metadata"] = data["metadata"] ? 
+      data["metadata"].filter((field) => {
+        if('en' in field['label'] && 'en' in field['value'] ) {
+          if(field['label']['en'][0] === "Slug") {
+            return false
+          }
+        } 
+        return true
+      }) : []
+    let metadataArray = JSON.stringify(data["metadata"])
+    store.set('metadataProfile', metadataArray)
+    dialog.showMessageBox({
+      type: 'info',       
+      buttons: ['OK'],   
+      title: 'Success',  
+      message: 'The Metadata Profile has been saved!'
+    }) 
+  } catch(e) {
+    console.error("Error setting metadata profile:", e)
+    dialog.showErrorBox('Error', 'Could not set metadata profile.')
+  }
 }
-const handleGetMetadataProfile = async () => {
-  const metadataString = store.get('metadataProfile')
-  return JSON.parse(metadataString)
+const handleGetMetadataProfile = async (event, data) => {
+  try {
+    const metadataString = store.get('metadataProfile')
+    let metadataArray = JSON.parse(metadataString)
+    for (let field of data["metadata"]) { 
+      if('en' in field['label'] && 'en' in field['value'] ) {
+        if(field['label']['en'][0] === "Slug") {
+          metadataArray.unshift(field)
+        }
+      }
+    } 
+    return metadataArray
+  }
+  catch(e) {
+    console.error("Error getting metadata profile:", e)
+    dialog.showErrorBox('Error', 'Could not get metadata profile.')
+  }
 }
 const handleReplaceManifestCanvasesFromFolder = async (event, data) => {
   try {
