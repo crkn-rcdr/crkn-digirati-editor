@@ -10,6 +10,7 @@ interface IElectronAPI {
   electron: () => string,
   replaceManifestCanvasesFromFolder: (data:any) => Promise<any>,
   createManifestFromFolder: () => Promise<any>,
+  createManifestFromFiles: () => Promise<any>,
   openFile: () => Promise<any>,
   setWipPath: () => Promise<any>,
   getWipPath: () => Promise<any>,

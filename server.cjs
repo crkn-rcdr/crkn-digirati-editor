@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const path = require('path')
 const writeDcCsv = require("./utilities/writeDcCsv.cjs")
-const { createManifest, replaceManifestCanvasesFromFolder } = require("./utilities/manifestCreation.cjs")
+const { createManifest, replaceManifestCanvasesFromFolder, createManifestFromFiles } = require("./utilities/manifestCreation.cjs")
 const Store = require('electron-store')
 const fs = require('fs')
 const store = new Store()
@@ -13,6 +13,7 @@ const createWindow = () => {
       preload: path.join(__dirname, 'preload.js')
     }
   })
+  ipcMain.handle('createManifestFromFiles', handleCreateManifestFromFiles)
   ipcMain.handle('replaceManifestCanvasesFromFolder', handleReplaceManifestCanvasesFromFolder)
   ipcMain.handle("createManifestFromFolder", handleCreateManifestFromFolder)
   ipcMain.handle('openFile', handleOpenFile)
@@ -87,11 +88,26 @@ const handleReplaceManifestCanvasesFromFolder = async (event, data) => {
     const wipPath = store.get('wipPath')
     const { filePaths } = await dialog.showOpenDialog({ properties: ['openDirectory'] })
     if (!filePaths.length) return
-    const loadingWindow = new BrowserWindow()
-    loadingWindow.loadFile('loading.html')
+    //const loadingWindow = new BrowserWindow()
+    //loadingWindow.loadFile('loading.html')
     const folderPath = filePaths[0].replace(/\\/g, '/')
     const manifest = await replaceManifestCanvasesFromFolder(wipPath, folderPath, data)
-    loadingWindow.close()
+    //loadingWindow.close()
+    return manifest
+  } catch (e) {
+    console.error("Error selecting folder:", e)
+    dialog.showErrorBox('Error', 'Could not select folder.')
+  }
+}
+const handleCreateManifestFromFiles = async () => {
+  try {
+    const wipPath = store.get('wipPath')
+    const { filePaths } = await dialog.showOpenDialog({ properties: ['openFile', 'multiSelections'] })
+    if (!filePaths.length) return
+    //const loadingWindow = new BrowserWindow()
+    //loadingWindow.loadFile('loading.html')
+    const manifest = await createManifestFromFiles(wipPath, filePaths)
+    //loadingWindow.close()
     return manifest
   } catch (e) {
     console.error("Error selecting folder:", e)
@@ -103,11 +119,11 @@ const handleCreateManifestFromFolder = async () => {
     const wipPath = store.get('wipPath')
     const { filePaths } = await dialog.showOpenDialog({ properties: ['openDirectory'] })
     if (!filePaths.length) return
-    const loadingWindow = new BrowserWindow()
-    loadingWindow.loadFile('loading.html')
+    //const loadingWindow = new BrowserWindow()
+    //loadingWindow.loadFile('loading.html')
     const folderPath = filePaths[0].replace(/\\/g, '/')
     const manifest = await createManifest(wipPath, folderPath)
-    loadingWindow.close()
+    //loadingWindow.close()
     return manifest
   } catch (e) {
     console.error("Error selecting folder:", e)

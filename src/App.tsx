@@ -8,6 +8,7 @@ import { useEffect, useState } from "react"
 import { Button, ChakraProvider } from "@chakra-ui/react"
 import { OpenManifestFromURLMenu } from "./components/OpenManifestFromURLMenu"
 import { CreateManifestFromFolderMenu } from "./components/CreateManifestFromFolderMenu"
+import { CreateManifestFromFilesMenu } from "./components/CreateManifestFromFilesMenu"
 import { ChevronDownIcon} from "@chakra-ui/icons"
 import {
   Menu,
@@ -73,6 +74,7 @@ function App() {
                       </MenuButton>
                       <MenuList>
                         <CreateManifestFromFolderMenu/>
+                        <CreateManifestFromFilesMenu/>
                         <OpenFileMenu/>
                         <OpenManifestFromURLMenu/>
                       </MenuList>
@@ -122,6 +124,7 @@ function App() {
                   </MenuButton>
                   <MenuList>
                     <CreateManifestFromFolderMenu/>
+                    <CreateManifestFromFilesMenu/>
                     <OpenFileMenu/>
                     <OpenManifestFromURLMenu/>
                   </MenuList>
