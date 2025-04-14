@@ -7,7 +7,6 @@ import { Vault } from "@iiif/helpers/vault"
 import { useEffect, useState } from "react"
 import { Button, ChakraProvider } from "@chakra-ui/react"
 import { OpenManifestFromURLMenu } from "./components/OpenManifestFromURLMenu"
-import { CreateManifestFromFolderMenu } from "./components/CreateManifestFromFolderMenu"
 import { CreateManifestFromFilesMenu } from "./components/CreateManifestFromFilesMenu"
 import { ChevronDownIcon} from "@chakra-ui/icons"
 import {
@@ -18,12 +17,22 @@ import {
 import { WipSettingsMenu } from "./components/WipSettingsMenu"
 import { OpenFileMenu } from "./components/OpenFileMenu"
 import { SaveMenu } from "./components/SaveMenu"
-import { ExtractMetadataMenu } from "./components/ExtractMetadataMenu"
 import { OverwriteManifestCanvasesFromFolderMenu } from "./components/OverwriteManifestCanvasesFromFolderMenu"
 import { RelabelCanvesesMenu } from "./components/RelabelCanvesesMenu"
-import { SaveMetadataProfileMenu } from "./components/SaveMetadataProfileMenu"
-import { GetMetadataProfileMenu } from "./components/GetMetadataProfileMenu"
+//import { SaveMetadataProfileMenu } from "./components/SaveMetadataProfileMenu"
+//import { GetMetadataProfileMenu } from "./components/GetMetadataProfileMenu"
+/*
 
+                    <Menu>
+                      <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                        Metadata Tools
+                      </MenuButton>
+                      <MenuList>
+                        <SaveMetadataProfileMenu/>
+                        <GetMetadataProfileMenu/>
+                      </MenuList>
+                    </Menu>
+*/
 function App() {
   const vault = new Vault()
   const [data, setData] = useState()
@@ -73,7 +82,6 @@ function App() {
                         Open
                       </MenuButton>
                       <MenuList>
-                        <CreateManifestFromFolderMenu/>
                         <CreateManifestFromFilesMenu/>
                         <OpenFileMenu/>
                         <OpenManifestFromURLMenu/>
@@ -90,16 +98,6 @@ function App() {
                       </MenuList>
                     </Menu>
 
-                    <Menu>
-                      <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-                        Metadata Tools
-                      </MenuButton>
-                      <MenuList>
-                        <SaveMetadataProfileMenu/>
-                        <GetMetadataProfileMenu/>
-                        <ExtractMetadataMenu/>
-                      </MenuList>
-                    </Menu>
 
                     <SaveMenu/>
                   </div>
@@ -123,7 +121,6 @@ function App() {
                     Open
                   </MenuButton>
                   <MenuList>
-                    <CreateManifestFromFolderMenu/>
                     <CreateManifestFromFilesMenu/>
                     <OpenFileMenu/>
                     <OpenManifestFromURLMenu/>

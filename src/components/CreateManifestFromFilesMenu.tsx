@@ -17,7 +17,7 @@ export function CreateManifestFromFilesMenu() {
       <MenuItem
         onClick={onCreatePress}
         title="Create New Manifest from Files">
-          Create New Manifest from Files
+          New Manifest
       </MenuItem>
   )
 }

@@ -33,13 +33,13 @@ export function OpenManifestFromURLMenu() {
       <MenuItem
         onClick={onOpen}
         title="Open Manifest from URL">
-          Open Manifest from URL
+          Manifest from URL
       </MenuItem>
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Open a Manifest from a URL</ModalHeader>
+          <ModalHeader>Manifest from a URL</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             You can paste the URL of a Manifest into the field below to open it in the Manifest Editor.

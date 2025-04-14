@@ -19,7 +19,7 @@ export function OpenFileMenu() {
       <MenuItem
         onClick={onOpenPress}
         title="Open Manifest File">
-          Open Manifest File
+          Manifest File
       </MenuItem>
   )
 }

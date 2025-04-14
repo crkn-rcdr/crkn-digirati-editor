@@ -18,7 +18,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getWipPath: () => ipcRenderer.invoke('getWipPath'),
   setMetadataProfile: (data) => ipcRenderer.invoke('setMetadataProfile', data),
   getMetadataProfile: (data) => ipcRenderer.invoke('getMetadataProfile', data),
-  extractDc: (data) => ipcRenderer.invoke('extractDc', data),
   relabelCanveses: (data) => ipcRenderer.invoke('relabelCanveses', data),
   saveManifest: (data) => ipcRenderer.invoke('saveManifest', data)
 })

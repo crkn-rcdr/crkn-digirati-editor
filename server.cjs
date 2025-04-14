@@ -1,7 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const path = require('path')
-const writeDcCsv = require("./utilities/writeDcCsv.cjs")
-const { createManifest, replaceManifestCanvasesFromFolder, createManifestFromFiles } = require("./utilities/manifestCreation.cjs")
+const { replaceManifestCanvases, createManifestFromFiles } = require("./utilities/manifestCreation.cjs")
 const Store = require('electron-store')
 const fs = require('fs')
 const store = new Store()
@@ -14,14 +13,12 @@ const createWindow = () => {
     }
   })
   ipcMain.handle('createManifestFromFiles', handleCreateManifestFromFiles)
-  ipcMain.handle('replaceManifestCanvasesFromFolder', handleReplaceManifestCanvasesFromFolder)
-  ipcMain.handle("createManifestFromFolder", handleCreateManifestFromFolder)
+  ipcMain.handle('replaceManifestCanvasesFromFolder', handleReplaceManifestCanvases)
   ipcMain.handle('openFile', handleOpenFile)
   ipcMain.handle('setWipPath', handleSetWipPath)
   ipcMain.handle('getWipPath', handleGetWipPath)
   ipcMain.handle('setMetadataProfile', handleSetMetadataProfile)
   ipcMain.handle('getMetadataProfile', handleGetMetadataProfile)
-  ipcMain.handle('extractDc', handleExtractDc)
   ipcMain.handle('relabelCanveses', handleRelabelCanveses)
   ipcMain.handle('saveManifest', handleSaveManifest)
   win.loadFile(path.join(__dirname, '/dist/index.html'))
@@ -83,16 +80,11 @@ const handleGetMetadataProfile = async (event, data) => {
     dialog.showErrorBox('Error', 'Could not get metadata profile.')
   }
 }
-const handleReplaceManifestCanvasesFromFolder = async (event, data) => {
+const handleReplaceManifestCanvases = async (event, data) => {
   try {
-    const wipPath = store.get('wipPath')
-    const { filePaths } = await dialog.showOpenDialog({ properties: ['openDirectory'] })
+    const { filePaths } = await dialog.showOpenDialog({ properties: ['openFile', 'multiSelections'] })
     if (!filePaths.length) return
-    //const loadingWindow = new BrowserWindow()
-    //loadingWindow.loadFile('loading.html')
-    const folderPath = filePaths[0].replace(/\\/g, '/')
-    const manifest = await replaceManifestCanvasesFromFolder(wipPath, folderPath, data)
-    //loadingWindow.close()
+    const manifest = await replaceManifestCanvases(filePaths, data)
     return manifest
   } catch (e) {
     console.error("Error selecting folder:", e)
@@ -101,29 +93,9 @@ const handleReplaceManifestCanvasesFromFolder = async (event, data) => {
 }
 const handleCreateManifestFromFiles = async () => {
   try {
-    const wipPath = store.get('wipPath')
     const { filePaths } = await dialog.showOpenDialog({ properties: ['openFile', 'multiSelections'] })
     if (!filePaths.length) return
-    //const loadingWindow = new BrowserWindow()
-    //loadingWindow.loadFile('loading.html')
-    const manifest = await createManifestFromFiles(wipPath, filePaths)
-    //loadingWindow.close()
-    return manifest
-  } catch (e) {
-    console.error("Error selecting folder:", e)
-    dialog.showErrorBox('Error', 'Could not select folder.')
-  }
-}
-const handleCreateManifestFromFolder = async () => {
-  try {
-    const wipPath = store.get('wipPath')
-    const { filePaths } = await dialog.showOpenDialog({ properties: ['openDirectory'] })
-    if (!filePaths.length) return
-    //const loadingWindow = new BrowserWindow()
-    //loadingWindow.loadFile('loading.html')
-    const folderPath = filePaths[0].replace(/\\/g, '/')
-    const manifest = await createManifest(wipPath, folderPath)
-    //loadingWindow.close()
+    const manifest = await createManifestFromFiles(filePaths)
     return manifest
   } catch (e) {
     console.error("Error selecting folder:", e)
@@ -150,48 +122,6 @@ const handleOpenFile = async () => {
   } catch (error) {
     dialog.showErrorBox('Error', 'Could not read or parse the JSON file.')
     return null
-  }
-}
-const handleExtractDc = async(event, data) => {
-  const wipPath = store.get('wipPath')
-  let result = writeDcCsv(wipPath, data)
-  if(result.success){
-    dialog.showMessageBox({
-      type: 'info',       
-      buttons: ['OK'],   
-      title: 'Success',  
-      message: 'The DC Metadata has been extracted!'
-    }) 
-    try {
-      let fieldsToRemove = [ 
-        "InMagic Identifier",
-        "CIHM Identifier",
-        "Alternate Title", //(must be the second title column in the record)
-        "Volume/Issue", //(we concatenate this field with the main title field)
-        "Issue Date",
-        "Coverage Date",
-        "Language",
-        "Place of Publication",
-        "Publisher",
-        "Publication Date",
-        "Source"
-      ]
-      let newMetadata = []
-      for (let field of data["metadata"]) { 
-        if('en' in field['label'] && 'en' in field['value'] ) {
-          if(!fieldsToRemove.includes(field['label']['en'][0])) {
-            newMetadata.push(field)
-          }
-        }
-      }
-      data['metadata'] = newMetadata
-    } catch(e) {
-      dialog.showErrorBox('Error', 'There was a problem when automatically removing the dc metadata from the manifest.')
-    }
-    return data
-  } else {
-    dialog.showErrorBox('Error', 'The DC Metadata could not be extracted.')
-    return data
   }
 }
 const handleRelabelCanveses = async(event, data) => {
@@ -240,12 +170,10 @@ const handleSaveManifest = async(event, data) => {
     return false
   }
 }
-
 // App initialization
 app.whenReady().then(() => {
   createWindow()
 })
-
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()

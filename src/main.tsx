@@ -16,7 +16,6 @@ interface IElectronAPI {
   getWipPath: () => Promise<any>,
   setMetadataProfile: (data:any) => Promise<any>,
   getMetadataProfile: (data:any) => Promise<any>,
-  extractDc: (data:any) => Promise<any>,
   relabelCanveses: (data:any) => Promise<any>,
   saveManifest: (data:any) => Promise<any>
 }
