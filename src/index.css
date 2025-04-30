@@ -56,3 +56,7 @@ button:focus-visible {
 div[data-popper-placement="bottom-start"] {
   z-index: 10000;
 }
+
+#root div.manifest-editor div:nth-child(6):has(label[for="dims-height"]) {
+  display: none;
+}

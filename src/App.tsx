@@ -37,26 +37,6 @@ import { RelabelCanvesesMenu } from "./components/RelabelCanvesesMenu"
 function App() {
   const vault = new Vault()
   const [data, setData] = useState()
-  let manifestSideBar : string
-  function overWriteSidebar() {
-    // //*[@id="root"]/div/div[2]/div[1]/div[6] > div > div > div > div:nth-child(1) > div[2]
-    const element = document.querySelector('#root > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(6) > div > div > div > div:nth-child(1) > div:nth-child(2)')
-    console.log(element)
-    if(element) {
-      if(element.innerHTML.includes("Canvas")){
-        console.log("Canvas")
-        console.log('el', manifestSideBar)
-        if(typeof manifestSideBar !== "undefined") element.innerHTML = manifestSideBar
-      } else if (element.innerHTML.includes("Manifest")) {
-        console.log("Manifest")
-        manifestSideBar = element.innerHTML
-      } else {
-        console.log("err")
-      }
-    } else {
-      console.log("element null")
-    }
-  }
   // On load
   useEffect(() => {
     console.log("Create")
@@ -85,12 +65,6 @@ function App() {
       localStorage.clear()
     }
   }, true)
-  useEffect(() => {
-    if (data !== undefined) {
-      console.log('Data changed:', data)
-      overWriteSidebar()
-    }
-  }, [data]); // This effect runs every time `data` changes
 
     return (
       <VaultProvider vault={vault}>
