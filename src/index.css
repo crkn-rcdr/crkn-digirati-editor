@@ -60,3 +60,7 @@ div[data-popper-placement="bottom-start"] {
 #root div.manifest-editor div:nth-child(6):has(label[for="dims-height"]) {
   display: none;
 }
+
+.grid-md {
+  --grid-column-count: 1 !important;
+}
