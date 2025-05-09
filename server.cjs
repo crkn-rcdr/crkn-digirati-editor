@@ -10,8 +10,10 @@ const createWindow = () => {
     height: 900,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
-    }
+    },
+    icon: path.join(__dirname, 'appico', 'icon.ico') // or .ico for Windows
   })
+  win.loadFile(path.join(__dirname, '/dist/index.html'))
   ipcMain.handle('createManifestFromFiles', handleCreateManifestFromFiles)
   ipcMain.handle('replaceManifestCanvasesFromFolder', handleReplaceManifestCanvases)
   ipcMain.handle('openFile', handleOpenFile)
@@ -21,7 +23,6 @@ const createWindow = () => {
   ipcMain.handle('getMetadataProfile', handleGetMetadataProfile)
   ipcMain.handle('relabelCanveses', handleRelabelCanveses)
   ipcMain.handle('saveManifest', handleSaveManifest)
-  win.loadFile(path.join(__dirname, '/dist/index.html'))
 }
 const handleSetWipPath = async () => {
   const result = await dialog.showOpenDialog({
@@ -170,10 +171,15 @@ const handleSaveManifest = async(event, data) => {
     return false
   }
 }
-// App initialization
+
 app.whenReady().then(() => {
   createWindow()
-})
+  /*app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  });*/
+});
+
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()

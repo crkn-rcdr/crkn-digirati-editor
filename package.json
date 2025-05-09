@@ -1,5 +1,5 @@
 {
-  "name": "crkn-editor",
+  "name": "crkn-publisher",
   "private": true,
   "version": "0.0.0",
   "main": "server.cjs",

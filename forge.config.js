@@ -4,12 +4,19 @@ const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 module.exports = {
   packagerConfig: {
     asar: true,
+    icon: './appico'
   },
   rebuildConfig: {},
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
-      config: {},
+      config: {
+        // An URL to an ICO file to use as the application icon (displayed in Control Panel > Programs and Features).
+        iconUrl: 'https://www.crkn-rcdr.ca/sites/default/themes/crkn/favicon.ico',
+        // The ICO file to use as the icon for the generated Setup.exe
+        setupIcon: './appico/icon.ico',
+        loadingGif: './appgif/loading.gif'
+      }
     },
     {
       name: '@electron-forge/maker-zip',
