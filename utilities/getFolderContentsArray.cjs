@@ -1,11 +1,13 @@
-let electronFs = require('fs')
-/*
- Advanced tutorial: https://jakelunn.medium.com/simple-file-tree-electron-es6-71e8abc2c52
-*/
-module.exports = function getFolderContentsArray(path) {
-    let fileArray = []
-    electronFs.readdirSync(path).forEach(file => {
-        fileArray.push(`${path}/${file}`)
-    })
-    return fileArray
-}
+const fs = require('fs').promises;
+const pathModule = require('path');
+
+module.exports = async function getFolderContentsArray(path) {
+    try {
+        const files = await fs.readdir(path);
+        const fileArray = files.map(file => pathModule.join(path, file));
+        return fileArray;
+    } catch (err) {
+        console.error(`Error reading folder: ${path}`, err);
+        return [];
+    }
+};
