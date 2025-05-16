@@ -2,22 +2,36 @@ const path = require('path');
 const fs = require('fs').promises;
 
 async function sizeOf(filePath) {
-  const buffer = await fs.readFile(filePath);
-  if (buffer[0] !== 0xFF || buffer[1] !== 0xD8) {
-    throw new Error('Not a valid JPEG file');
-  }
-  let offset = 2;
-  while (offset < buffer.length) {
-    const marker = buffer.readUInt16BE(offset);
-    if (marker === 0xFFC0 || marker === 0xFFC2) {
-      const height = buffer.readUInt16BE(offset + 5);
-      const width = buffer.readUInt16BE(offset + 7);
-      return { width, height };
+  const handle = await fs.open(filePath);
+  try {
+    const { size } = await handle.stat(); // Get file size here
+    const bytesToRead = Math.min(512 * 1024, size); // Read only part of the file
+    const buffer = Buffer.alloc(bytesToRead); // Create buffer
+    await handle.read(buffer, 0, bytesToRead, 0); // Read into buffer
+
+    if (buffer[0] !== 0xFF || buffer[1] !== 0xD8) {
+      throw new Error('Not a valid JPEG file');
     }
-    offset += 2 + buffer.readUInt16BE(offset + 2);
+
+    let offset = 2;
+    while (offset < buffer.length) {
+      if (buffer[offset] !== 0xFF) break;
+      const marker = buffer.readUInt16BE(offset);
+      const length = buffer.readUInt16BE(offset + 2);
+      if (marker === 0xFFC0 || marker === 0xFFC2) {
+        const height = buffer.readUInt16BE(offset + 5);
+        const width = buffer.readUInt16BE(offset + 7);
+        return { width, height };
+      }
+      offset += 2 + length;
+    }
+
+    throw new Error('Unable to find image dimensions');
+  } finally {
+    await handle.close(); // Always close the file handle
   }
-  throw new Error('Unable to find image dimensions');
 }
+
 
 const getManifestItem = async (filePath, position) => {
   const dimensions = await sizeOf(filePath);
@@ -54,6 +68,12 @@ const getManifestItem = async (filePath, position) => {
   };
 };
 
+
+/**
+ * 
+let imagePromises = [];
+imagePromises.push(async () => { ... read the image size here ... });
+ */
 const getManifestItems = async (filePaths) => {
   return Promise.all(filePaths.map((file, index) => getManifestItem(file, index)));
 };
@@ -81,7 +101,7 @@ const createManifestFromFiles = async (filePaths) => {
   const projectPath = filePaths[0].replace(/\\/g, '/');
   const manifestId = path.basename(projectPath);
   const manifest = newManifest(manifestId, "");
-  manifest.items = await getManifestItems(filePaths);
+  manifest.items = await getManifestItems(filePaths); // await Promise.all(imagePromises); // Will batch the file system reads.
   return manifest;
 };
 
