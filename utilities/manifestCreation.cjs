@@ -2,10 +2,11 @@ const path = require('path');
 const fs = require('fs').promises;
 
 async function sizeOf(filePath) {
+  //console.log(filePath);
   const handle = await fs.open(filePath);
   try {
     const { size } = await handle.stat(); // Get file size here
-    const bytesToRead = Math.min(512 * 1024, size); // Read only part of the file
+    const bytesToRead = Math.min(1024 * 1024, size); // Read only part of the file
     const buffer = Buffer.alloc(bytesToRead); // Create buffer
     await handle.read(buffer, 0, bytesToRead, 0); // Read into buffer
 
