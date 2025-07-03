@@ -12,6 +12,7 @@ interface IElectronAPI {
   createManifestFromFolder: () => Promise<any>,
   createManifestFromFiles: () => Promise<any>,
   openFile: () => Promise<any>,
+  setWindmill: (data:any) => Promise<any>,
   setWipPath: () => Promise<any>,
   getWipPath: () => Promise<any>,
   setMetadataProfile: (data:any) => Promise<any>,

@@ -22,7 +22,7 @@ import {
           try {
             if(res) setData(res as any)
           } catch (e) {
-            console.log("error getting local manifest")
+            console.log("error setting WIP")
           }
         })
     }

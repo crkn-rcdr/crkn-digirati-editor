@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const path = require('path')
 const { replaceManifestCanvases, createManifestFromFiles } = require('./utilities/manifestCreation.cjs')
+const { triggerWindmillJob } = require('./utilities/windmill.cjs')
 const Store = require('electron-store')
 const fsPromises = require('fs/promises')
 const store = new Store()
@@ -41,6 +42,7 @@ const createWindow = () => {
   ipcMain.handle('createManifestFromFiles', handleCreateManifestFromFiles)
   ipcMain.handle('replaceManifestCanvasesFromFolder', handleReplaceManifestCanvases)
   ipcMain.handle('openFile', handleOpenFile)
+  ipcMain.handle('setWindmill', handleSetWindmill)
   ipcMain.handle('setWipPath', handleSetWipPath)
   ipcMain.handle('getWipPath', handleGetWipPath)
   ipcMain.handle('setMetadataProfile', handleSetMetadataProfile)
@@ -50,6 +52,21 @@ const createWindow = () => {
   win.on('closed', () => {
     hideLoadingWindow()
   })
+}
+const handleSetWindmill = async (event, data) => {
+  try {
+    store.set('windmill', data.windmill)
+    console.log('w', data.windmill)
+    dialog.showMessageBox({
+      type: 'info',
+      buttons: ['OK'],
+      title: 'Success',
+      message: 'The windmill profile has been saved!'
+    })
+  } catch (e) {
+    console.error('Error setting windmill profile:', e)
+    dialog.showErrorBox('Error', 'Could not set windmill profile.')
+  }
 }
 const handleSetWipPath = async () => {
   const result = await dialog.showOpenDialog({ properties: ['openDirectory'] })
@@ -167,8 +184,8 @@ const handleRelabelCanveses = async (event, data) => {
 const handleSaveManifest = async (event, data) => {
   try {
     const wipPath = store.get('wipPath')
+    const windmill = store.get('windmill')
     let slug
-
     for (const field of data.metadata) {
       if (field.label?.en?.[0] === 'Slug') {
         slug = field.value.en[0]
@@ -178,14 +195,15 @@ const handleSaveManifest = async (event, data) => {
 
     if (!slug) throw new Error('You need to add a Slug metadata element to the metadata array before saving.')
 
-    const filePath = path.join(wipPath, 'crkn-scripting', 'new-manifests', `${slug}.json`)
+    const filePath = path.join(wipPath, 'crkn-scripting', 'new-manifests-windmill', `${slug}.json`)
     await fsPromises.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8')
+    await triggerWindmillJob(windmill, slug)
 
     dialog.showMessageBox({
       type: 'info',
       buttons: ['OK'],
       title: 'Success',
-      message: `File saved successfully at: ${filePath}`
+      message: `File saved successfully at: ${filePath}. File queued for processing on Windmill.`
     })
     return true
   } catch (error) {

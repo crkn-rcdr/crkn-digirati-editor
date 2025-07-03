@@ -15,6 +15,7 @@ import {
   MenuList
 } from "@chakra-ui/react"
 import { WipSettingsMenu } from "./components/WipSettingsMenu"
+import { WindmillSettingsMenu } from "./components/WindmillSettingsMenu"
 import { OpenFileMenu } from "./components/OpenFileMenu"
 import { SaveMenu } from "./components/SaveMenu"
 import { OverwriteManifestCanvasesFromFolderMenu } from "./components/OverwriteManifestCanvasesFromFolderMenu"
@@ -78,6 +79,7 @@ function App() {
                     </MenuButton>
                     <MenuList>
                       <WipSettingsMenu/>
+                      <WindmillSettingsMenu/>
                     </MenuList>
                   </Menu>
                     <Menu>
@@ -117,6 +119,7 @@ function App() {
                   </MenuButton>
                   <MenuList>
                     <WipSettingsMenu/>
+                    <WindmillSettingsMenu/>
                   </MenuList>
                 </Menu>
                 <Menu>

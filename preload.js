@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   //getManifestLocally: (id) => ipcRenderer.invoke('getManifestLocally', id),
   //listManifestLocally: () => ipcRenderer.invoke('listManifestLocally'),
   //triggerLegacyIngest: (slug) => ipcRenderer.invoke('triggerLegacyIngest', slug),
+  setWindmill: (data) => ipcRenderer.invoke('setWindmill', data),
   setWipPath: () => ipcRenderer.invoke('setWipPath'),
   getWipPath: () => ipcRenderer.invoke('getWipPath'),
   setMetadataProfile: (data) => ipcRenderer.invoke('setMetadataProfile', data),
