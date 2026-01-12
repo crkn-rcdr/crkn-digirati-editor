@@ -15,7 +15,8 @@ export function CreateManifestFromFilesMenu() {
   }
   return (
       <MenuItem
-        onClick={onCreatePress}
+        value="new-manifest"
+        onSelect={onCreatePress}
         title="Create New Manifest from Files">
           New Manifest
       </MenuItem>

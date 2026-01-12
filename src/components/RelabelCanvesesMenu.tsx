@@ -20,7 +20,8 @@ export function RelabelCanvesesMenu() {
     }
     return (
         <MenuItem
-            onClick={onExtractPress}
+            value="relabel-canvases"
+            onSelect={onExtractPress}
             title="Relabel canvases to match their position in the manifest">
             Relabel Canvases
         </MenuItem>

@@ -16,10 +16,9 @@
     "publish": "electron-forge publish"
   },
   "dependencies": {
-    "@chakra-ui/icons": "^2.1.1",
-    "@chakra-ui/react": "^2.8.2",
-    "@emotion/react": "^11.13.3",
-    "@emotion/styled": "^11.13.0",
+    "manifest-editor": "2.0.1",
+    "@chakra-ui/react": "^3.0.0",
+    "@emotion/react": "^11.14.0",
     "@fastify/static": "^8.0.1",
     "@iiif/builder": "^2.0.1",
     "@iiif/helpers": "^1.2.19",
@@ -27,15 +26,20 @@
     "axios": "^1.7.7",
     "electron-dl": "^4.0.0",
     "electron-squirrel-startup": "^1.0.1",
-    "electron-store": "^5.2.0",
+    "electron-store": "^8.1.0",
     "fastify": "^5.0.0",
     "fastify-plugin": "^5.0.1",
-    "framer-motion": "^11.9.0",
     "image-size": "^1.1.1",
     "jsonwebtoken": "^9.0.2",
     "mime-types": "^2.1.35",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-icons": "^5.3.0"
+  },
+  "overrides": {
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-reconciler": "0.33.0"
   },
   "devDependencies": {
     "@electron-forge/cli": "^7.5.0",
@@ -48,20 +52,19 @@
     "@electron/fuses": "^1.8.0",
     "@eslint/js": "^9.9.0",
     "@types/node": "^22.7.3",
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "dompurify": ">=3.1.3",
     "electron": "^32.1.2",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
-    "manifest-editor": "1.4.0",
     "rollup": "^4.28.1",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
     "vite": "^5.4.14",
-    "vite-plugin-dts": "^4.2.2",
-    "dompurify": ">=3.1.3"
+    "vite-plugin-dts": "^4.2.2"
   }
 }

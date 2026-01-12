@@ -18,7 +18,8 @@ export function SaveMetadataProfileMenu() {
     }
     return (
         <MenuItem
-            onClick={onSetMetadataProfile}
+            value="set-metadata-profile"
+            onSelect={onSetMetadataProfile}
             title="Save the current metadata values for future use">
             Set Metadata Profile
         </MenuItem>

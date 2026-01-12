@@ -1,19 +1,11 @@
 import {
-    Modal,
-    ModalOverlay,
-    ModalContent,
-    ModalHeader,
-    ModalFooter,
-    ModalBody,
-    ModalCloseButton,
     Button,
-    MenuItem, 
-    useDisclosure
+    CloseButton,
+    Dialog,
   } from '@chakra-ui/react'
   import { useEffect, useState } from "react"
   
   export function WipSettingsMenu() {
-    const { isOpen, onOpen, onClose } = useDisclosure()
     const [data, setData] = useState([])
 
     let onSet = () => {
@@ -28,7 +20,6 @@ import {
     }
 
     useEffect(() => {
-      if (isOpen) {
         window.electronAPI.getWipPath()
           .then ( res => { 
             try {
@@ -37,32 +28,39 @@ import {
               console.log("error getting local manifest")
             }
           })
-      } 
-    }, [isOpen])
+    })
 
     return (
       <>
-        <MenuItem
-          onClick={onOpen}
-          title="WIP Settings">
-            WIP Settings
-        </MenuItem>
-        <Modal isOpen={isOpen} onClose={onClose}>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>WIP Settings</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <p>WIP Folder: {data}</p>
-              <Button onClick={onSet}>Select a WIP folder</Button>
-            </ModalBody>
-            <ModalFooter>
-              <Button mr={3} onClick={onClose}>
-                Close
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+        <Dialog.Root>
+          <Dialog.Trigger asChild>
+            <Button 
+              colorPalette="gray"
+              variant="subtle"
+              title="Open a dialog to edit WIP Settings">
+                WIP Settings
+            </Button>
+          </Dialog.Trigger>
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content>
+              <Dialog.CloseTrigger asChild>
+                <CloseButton />
+              </Dialog.CloseTrigger>
+              <Dialog.Header>
+                <Dialog.Title>WIP Settings</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.Body>
+                <p>WIP Folder: {data}</p>
+                <Button  colorPalette="pink" onClick={onSet}>Select a WIP folder</Button>
+              </Dialog.Body>
+              <Dialog.Footer>
+                <Dialog.CloseTrigger asChild>
+                </Dialog.CloseTrigger>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Dialog.Root>
       </>
     )
   }

@@ -5,35 +5,16 @@ import { ManifestEditor } from "manifest-editor"
 import { VaultProvider } from "react-iiif-vault"
 import { Vault } from "@iiif/helpers/vault"
 import { useEffect, useState } from "react"
-import { Button, ChakraProvider } from "@chakra-ui/react"
+import { Button, Icon, Menu } from "@chakra-ui/react"
 import { OpenManifestFromURLMenu } from "./components/OpenManifestFromURLMenu"
 import { CreateManifestFromFilesMenu } from "./components/CreateManifestFromFilesMenu"
-import { ChevronDownIcon} from "@chakra-ui/icons"
-import {
-  Menu,
-  MenuButton,
-  MenuList
-} from "@chakra-ui/react"
+import { MdExpandMore } from "react-icons/md"
 import { WipSettingsMenu } from "./components/WipSettingsMenu"
 import { WindmillSettingsMenu } from "./components/WindmillSettingsMenu"
 import { OpenFileMenu } from "./components/OpenFileMenu"
 import { SaveMenu } from "./components/SaveMenu"
 import { OverwriteManifestCanvasesFromFolderMenu } from "./components/OverwriteManifestCanvasesFromFolderMenu"
 import { RelabelCanvesesMenu } from "./components/RelabelCanvesesMenu"
-//import { SaveMetadataProfileMenu } from "./components/SaveMetadataProfileMenu"
-//import { GetMetadataProfileMenu } from "./components/GetMetadataProfileMenu"
-/*
-
-                    <Menu>
-                      <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-                        Metadata Tools
-                      </MenuButton>
-                      <MenuList>
-                        <SaveMetadataProfileMenu/>
-                        <GetMetadataProfileMenu/>
-                      </MenuList>
-                    </Menu>
-*/
 
 function App() {
   const vault = new Vault()
@@ -71,69 +52,98 @@ function App() {
       <VaultProvider vault={vault}>
          {  data ? 
               <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column"}}>
-                <ChakraProvider>
-                  <div style={{ width: "100vw", display: "flex", flexDirection: "row", background: "rgb(238 242 247)"}}>              
-                  <Menu>
-                    <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-                      Settings
-                    </MenuButton>
-                    <MenuList>
-                      <WipSettingsMenu/>
-                      <WindmillSettingsMenu/>
-                    </MenuList>
-                  </Menu>
-                    <Menu>
-                      <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                <div style={{ width: "100vw", display: "flex", flexDirection: "row", background: "rgb(238 242 247)"}}>
+                  <Menu.Root>
+                    <Menu.Trigger asChild>
+                      <Button colorPalette="gray" gap="2">
+                        Settings
+                        <Icon boxSize="4">
+                          <MdExpandMore />
+                        </Icon>
+                      </Button>
+                    </Menu.Trigger>
+                    <Menu.Positioner>
+                      <Menu.Content>
+                        <WipSettingsMenu/>
+                        <br/>
+                        <WindmillSettingsMenu/>
+                      </Menu.Content>
+                    </Menu.Positioner>
+                  </Menu.Root>
+                  <Menu.Root>
+                    <Menu.Trigger asChild>
+                      <Button colorPalette="gray" gap="2">
                         Open
-                      </MenuButton>
-                      <MenuList>
+                        <Icon boxSize="4">
+                          <MdExpandMore />
+                        </Icon>
+                      </Button>
+                    </Menu.Trigger>
+                    <Menu.Positioner>
+                      <Menu.Content>
                         <CreateManifestFromFilesMenu/>
                         <OpenFileMenu/>
                         <OpenManifestFromURLMenu/>
-                      </MenuList>
-                    </Menu>
-                    
-                    <Menu>
-                      <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                      </Menu.Content>
+                    </Menu.Positioner>
+                  </Menu.Root>
+                  <Menu.Root>
+                    <Menu.Trigger asChild>
+                      <Button colorPalette="gray" gap="2">
                         Canvas Tools
-                      </MenuButton>
-                      <MenuList>
+                        <Icon boxSize="4">
+                          <MdExpandMore />
+                        </Icon>
+                      </Button>
+                    </Menu.Trigger>
+                    <Menu.Positioner>
+                      <Menu.Content>
                         <OverwriteManifestCanvasesFromFolderMenu/>
                         <RelabelCanvesesMenu/>
-                      </MenuList>
-                    </Menu>
-
-
-                    <SaveMenu/>
-                  </div>
-                </ChakraProvider>
+                      </Menu.Content>
+                    </Menu.Positioner>
+                  </Menu.Root>
+                  <SaveMenu/>
+                </div>
                 <ManifestEditor resource={{ id: data["id"], type: "Manifest" }} data={data as any}/>
               </div>
             :
-            <ChakraProvider>
-              <div>
-                <h1>Get started</h1>
-                <Menu>
-                  <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+            <div>
+              <h1>Get started</h1>
+              <Menu.Root>
+                <Menu.Trigger asChild>
+                  <Button colorPalette="gray" gap="2">
                     Settings
-                  </MenuButton>
-                  <MenuList>
+                    <Icon boxSize="4">
+                      <MdExpandMore />
+                    </Icon>
+                  </Button>
+                </Menu.Trigger>
+                <Menu.Positioner>
+                  <Menu.Content>
                     <WipSettingsMenu/>
                     <WindmillSettingsMenu/>
-                  </MenuList>
-                </Menu>
-                <Menu>
-                  <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                  </Menu.Content>
+                </Menu.Positioner>
+              </Menu.Root>
+              <Menu.Root>
+                <Menu.Trigger asChild>
+                  <Button colorPalette="gray" gap="2">
                     Open
-                  </MenuButton>
-                  <MenuList>
+                    <Icon boxSize="4">
+                      <MdExpandMore />
+                    </Icon>
+                  </Button>
+                </Menu.Trigger>
+                <Menu.Positioner>
+                  <Menu.Content>
                     <CreateManifestFromFilesMenu/>
                     <OpenFileMenu/>
                     <OpenManifestFromURLMenu/>
-                  </MenuList>
-                </Menu>
-              </div>
-            </ChakraProvider>
+                  </Menu.Content>
+                </Menu.Positioner>
+              </Menu.Root>
+            </div>
           }
       </VaultProvider>  
     )

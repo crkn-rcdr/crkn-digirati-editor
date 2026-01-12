@@ -20,7 +20,8 @@ export function OverwriteManifestCanvasesFromFolderMenu() {
     }
     return (
         <MenuItem
-            onClick={onOverwritePress}
+            value="overwrite-canvases"
+            onSelect={onOverwritePress}
             title="Overwrite Manifest Canvases from a Folder">
             Overwite Canvases
         </MenuItem>

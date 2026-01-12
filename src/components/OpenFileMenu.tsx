@@ -17,7 +17,8 @@ export function OpenFileMenu() {
   }
   return (
       <MenuItem
-        onClick={onOpenPress}
+        value="manifest-file"
+        onSelect={onOpenPress}
         title="Open Manifest File">
           Manifest File
       </MenuItem>

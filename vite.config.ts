@@ -4,6 +4,7 @@ import dts from 'vite-plugin-dts'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  resolve: { dedupe: ['react', 'react-dom'] },
   plugins: [react(), dts({
     include: ['interface.d.ts'],
   })],

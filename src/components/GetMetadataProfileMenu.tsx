@@ -21,7 +21,8 @@ export function GetMetadataProfileMenu() {
     }
     return (
         <MenuItem
-            onClick={onGetMetadataProfilePress}
+            value="load-metadata-profile"
+            onSelect={onGetMetadataProfilePress}
             title="Load previosly saved metadata into this manifest">
             Load Metadata Profile
         </MenuItem>
