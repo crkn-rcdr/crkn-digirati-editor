@@ -19,7 +19,8 @@ export function SaveMenu() {
   }
   return (
     <Button 
-     colorPalette="pink"
+      colorPalette="gray"
+      variant="subtle"
       onClick={onSave}
       title="Save manifest data on the WIP for ingest">
         Save

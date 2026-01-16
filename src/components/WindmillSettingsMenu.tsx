@@ -27,7 +27,7 @@ import {
           <Dialog.Trigger asChild>
             <Button 
               colorPalette="gray"
-              variant="subtle"
+              variant="outline"
               title="Open a dialog to edit Windmill Settings">
                 Windmill Settings
             </Button>

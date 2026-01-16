@@ -2,14 +2,11 @@ import {
   Button,
   CloseButton,
   Dialog,
-  Input,
-  MenuItem,
-  useDisclosure
+  Input
 } from '@chakra-ui/react'
 import { useState } from "react"
 
 export function OpenManifestFromURLMenu() {
-  const { open, setOpen, onOpen } = useDisclosure()
   const [value, setValue] = useState('')
   const handleChange = (event: any) => setValue(event.target.value)
 
@@ -25,14 +22,16 @@ export function OpenManifestFromURLMenu() {
 
   return (
     <>
-      <MenuItem
-        value="manifest-url"
-        onSelect={onOpen}
-        title="Open Manifest from URL">
-          Manifest from URL
-      </MenuItem>
-
-      <Dialog.Root open={open} onOpenChange={(details) => setOpen(details.open)}>
+      <Dialog.Root>
+         <Dialog.Trigger asChild>
+            <Button
+              colorPalette="gray"
+              variant="subtle"
+              value="manifest-url"
+              title="Open Manifest from URL">
+                Manifest from URL
+            </Button>
+          </Dialog.Trigger>
         <Dialog.Backdrop />
         <Dialog.Positioner>
           <Dialog.Content>

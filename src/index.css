@@ -54,10 +54,16 @@ div[data-popper-placement="bottom-start"] {
   z-index: 10000;
 }
 
-#root div.manifest-editor div:nth-child(6):has(label[for="dims-height"]) {
+/* hides metadata #root div.manifest-editor div:nth-child(6):has(label[for="dims-height"]) {
   display: none;
+}*/
+
+div:not(#range-workbench-scroll) .grid-md {
+  --grid-column-count: 1 !important; /*Makes manifest homepage show pic canvases*/
 }
 
-.grid-md {
-  --grid-column-count: 1 !important;
+/*Annotation Box**/
+.mdxeditor-diff-source-wrapper {
+    border: 1px solid rgb(215 215 215);
+    min-height: 100px;
 }

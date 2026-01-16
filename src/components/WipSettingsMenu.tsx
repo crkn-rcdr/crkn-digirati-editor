@@ -36,7 +36,7 @@ import {
           <Dialog.Trigger asChild>
             <Button 
               colorPalette="gray"
-              variant="subtle"
+              variant="outline"
               title="Open a dialog to edit WIP Settings">
                 WIP Settings
             </Button>

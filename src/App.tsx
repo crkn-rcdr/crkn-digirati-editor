@@ -55,7 +55,7 @@ function App() {
                 <div style={{ width: "100vw", display: "flex", flexDirection: "row", background: "rgb(238 242 247)"}}>
                   <Menu.Root>
                     <Menu.Trigger asChild>
-                      <Button colorPalette="gray" gap="2">
+                      <Button colorPalette="gray" variant="subtle" gap="2">
                         Settings
                         <Icon boxSize="4">
                           <MdExpandMore />
@@ -72,7 +72,7 @@ function App() {
                   </Menu.Root>
                   <Menu.Root>
                     <Menu.Trigger asChild>
-                      <Button colorPalette="gray" gap="2">
+                      <Button colorPalette="gray" variant="subtle" gap="2">
                         Open
                         <Icon boxSize="4">
                           <MdExpandMore />
@@ -89,7 +89,7 @@ function App() {
                   </Menu.Root>
                   <Menu.Root>
                     <Menu.Trigger asChild>
-                      <Button colorPalette="gray" gap="2">
+                      <Button colorPalette="gray" variant="subtle" gap="2">
                         Canvas Tools
                         <Icon boxSize="4">
                           <MdExpandMore />
@@ -112,7 +112,7 @@ function App() {
               <h1>Get started</h1>
               <Menu.Root>
                 <Menu.Trigger asChild>
-                  <Button colorPalette="gray" gap="2">
+                  <Button colorPalette="gray" variant="subtle" gap="2">
                     Settings
                     <Icon boxSize="4">
                       <MdExpandMore />
@@ -122,13 +122,14 @@ function App() {
                 <Menu.Positioner>
                   <Menu.Content>
                     <WipSettingsMenu/>
+                    <br/>
                     <WindmillSettingsMenu/>
                   </Menu.Content>
                 </Menu.Positioner>
               </Menu.Root>
               <Menu.Root>
                 <Menu.Trigger asChild>
-                  <Button colorPalette="gray" gap="2">
+                  <Button colorPalette="gray" variant="subtle" gap="2">
                     Open
                     <Icon boxSize="4">
                       <MdExpandMore />
