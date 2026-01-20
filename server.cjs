@@ -195,7 +195,7 @@ const handleSaveManifest = async (event, data) => {
 
     if (!slug) throw new Error('You need to add a Slug metadata element to the metadata array before saving.')
 
-    const filePath = path.join(wipPath, 'crkn-scripting', 'new-manifests-windmill', `${slug}.json`)
+    const filePath = path.join(wipPath, 'crkn-scripting', 'new-manifests', `${slug}.json`)
     await fsPromises.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8')
     await triggerWindmillJob(windmill, slug)
 
@@ -203,7 +203,7 @@ const handleSaveManifest = async (event, data) => {
       type: 'info',
       buttons: ['OK'],
       title: 'Success',
-      message: `File saved successfully at: ${filePath}. File queued for processing on Windmill.`
+      message: `File saved successfully at: ${filePath}.`
     })
     return true
   } catch (error) {

@@ -2,6 +2,7 @@ import {
     Button,
     CloseButton,
     Dialog,
+    Portal,
   } from '@chakra-ui/react'
   import { useEffect, useState } from "react"
   
@@ -41,25 +42,27 @@ import {
                 WIP Settings
             </Button>
           </Dialog.Trigger>
-          <Dialog.Backdrop />
-          <Dialog.Positioner>
-            <Dialog.Content>
-              <Dialog.CloseTrigger asChild>
-                <CloseButton />
-              </Dialog.CloseTrigger>
-              <Dialog.Header>
-                <Dialog.Title>WIP Settings</Dialog.Title>
-              </Dialog.Header>
-              <Dialog.Body>
-                <p>WIP Folder: {data}</p>
-                <Button  colorPalette="pink" onClick={onSet}>Select a WIP folder</Button>
-              </Dialog.Body>
-              <Dialog.Footer>
+          <Portal>
+            <Dialog.Backdrop />
+            <Dialog.Positioner>
+              <Dialog.Content>
                 <Dialog.CloseTrigger asChild>
+                  <CloseButton />
                 </Dialog.CloseTrigger>
-              </Dialog.Footer>
-            </Dialog.Content>
-          </Dialog.Positioner>
+                <Dialog.Header>
+                  <Dialog.Title>WIP Settings</Dialog.Title>
+                </Dialog.Header>
+                <Dialog.Body>
+                  <p>WIP Folder: {data}</p>
+                  <Button  colorPalette="pink" onClick={onSet}>Select a WIP folder</Button>
+                </Dialog.Body>
+                <Dialog.Footer>
+                  <Dialog.CloseTrigger asChild>
+                  </Dialog.CloseTrigger>
+                </Dialog.Footer>
+              </Dialog.Content>
+            </Dialog.Positioner>
+          </Portal>
         </Dialog.Root>
       </>
     )
