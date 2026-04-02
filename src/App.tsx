@@ -15,6 +15,7 @@ import { OpenFileMenu } from "./components/OpenFileMenu"
 import { SaveMenu } from "./components/SaveMenu"
 import { OverwriteManifestCanvasesFromFolderMenu } from "./components/OverwriteManifestCanvasesFromFolderMenu"
 import { RelabelCanvesesMenu } from "./components/RelabelCanvesesMenu"
+import { AddCanvasesMenu } from "./components/AddCanvasesMenu"
 
 function App() {
   const vault = new Vault()
@@ -98,6 +99,7 @@ function App() {
                     </Menu.Trigger>
                     <Menu.Positioner>
                       <Menu.Content>
+                        <AddCanvasesMenu/>
                         <OverwriteManifestCanvasesFromFolderMenu/>
                         <RelabelCanvesesMenu/>
                       </Menu.Content>

@@ -10,6 +10,7 @@ interface IElectronAPI {
   chrome: () => string,
   electron: () => string,
   replaceManifestCanvasesFromFolder: (data:any) => Promise<any>,
+  addManifestCanvases: (data:any) => Promise<any>,
   createManifestFromFolder: () => Promise<any>,
   createManifestFromFiles: () => Promise<any>,
   openFile: () => Promise<any>,

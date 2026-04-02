@@ -1,6 +1,11 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const path = require('path')
-const { replaceManifestCanvases, createManifestFromFiles } = require('./utilities/manifestCreation.cjs')
+const {
+  replaceManifestCanvases,
+  addManifestCanvases,
+  relabelManifestCanvases,
+  createManifestFromFiles
+} = require('./utilities/manifestCreation.cjs')
 const { triggerWindmillJob } = require('./utilities/windmill.cjs')
 const Store = require('electron-store')
 const fsPromises = require('fs/promises')
@@ -41,6 +46,7 @@ const createWindow = () => {
   win.loadFile(path.join(__dirname, '/dist/index.html'))
   ipcMain.handle('createManifestFromFiles', handleCreateManifestFromFiles)
   ipcMain.handle('replaceManifestCanvasesFromFolder', handleReplaceManifestCanvases)
+  ipcMain.handle('addManifestCanvases', handleAddManifestCanvases)
   ipcMain.handle('openFile', handleOpenFile)
   ipcMain.handle('setWindmill', handleSetWindmill)
   ipcMain.handle('setWipPath', handleSetWipPath)
@@ -127,6 +133,24 @@ const handleReplaceManifestCanvases = async (event, data) => {
     dialog.showErrorBox('Error', 'Could not select files.')
   }
 }
+const handleAddManifestCanvases = async (event, data) => {
+  try {
+    const { filePaths } = await dialog.showOpenDialog({
+      properties: ['openFile', 'multiSelections'],
+      filters: [
+        { name: 'JPEG Images', extensions: ['jpg', 'jpeg'] }
+      ]
+    })
+    if (!filePaths.length) return
+    showLoadingWindow()
+    const manifest = await addManifestCanvases(filePaths, data)
+    hideLoadingWindow()
+    return manifest
+  } catch (e) {
+    console.error('Error selecting files:', e)
+    dialog.showErrorBox('Error', 'Could not select files.')
+  }
+}
 const handleCreateManifestFromFiles = async () => {
   try {
     const { filePaths } = await dialog.showOpenDialog({ 
@@ -169,14 +193,7 @@ const handleOpenFile = async () => {
 }
 const handleRelabelCanveses = async (event, data) => {
   try {
-    const newItems = data.items.map((canvas, index) => ({
-      ...canvas,
-      label: {
-        en: [`Image ${index + 1}`]
-      }
-    }))
-    data.items = newItems
-    return data
+    return relabelManifestCanvases(data)
   } catch (e) {
     dialog.showErrorBox('Error', 'There was a problem when re-labeling the canvases.')
   }

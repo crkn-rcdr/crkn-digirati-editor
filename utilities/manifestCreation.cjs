@@ -149,6 +149,26 @@ const createManifestFromFiles = async (filePaths) => {
 
 const replaceManifestCanvases = async (filePaths, manifest) => {
   manifest.items = await getManifestItems(filePaths);
+  return relabelManifestCanvases(manifest);
+};
+
+const addManifestCanvases = async (filePaths, manifest) => {
+  const existingItems = Array.isArray(manifest.items) ? manifest.items : [];
+  const newItems = await getManifestItems(filePaths);
+
+  manifest.items = [...existingItems, ...newItems];
+  return relabelManifestCanvases(manifest);
+};
+
+const relabelManifestCanvases = (manifest) => {
+  const currentItems = Array.isArray(manifest.items) ? manifest.items : [];
+  manifest.items = currentItems.map((canvas, index) => ({
+    ...canvas,
+    label: {
+      en: [`Image ${index + 1}`]
+    }
+  }));
+
   return manifest;
 };
 
@@ -156,5 +176,7 @@ module.exports = {
   getManifestItem,
   getManifestItems,
   createManifestFromFiles,
-  replaceManifestCanvases
+  replaceManifestCanvases,
+  addManifestCanvases,
+  relabelManifestCanvases
 };
